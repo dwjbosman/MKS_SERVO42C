@@ -1,6 +1,9 @@
 ﻿using System;
 using System.IO.Ports;
 using System.Threading;
+using NLog;
+using NLog.Config;
+using NLog.Targets;
 
 namespace ServoControl;
 
@@ -37,14 +40,41 @@ public class ServoController
 	public int encoderRead { get; private set;} = 0;
 	public int position { get; private set; } =0;
 	public int encoderRequestInterval { get; set; } = 2000;
+	public int debug { get; set; } = 0;
+
+	private LoggingConfiguration logConfig = new NLog.Config.LoggingConfiguration();
+	private NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 	
 	public ServoController() {
 		serialPort = new SerialPort();	
 		statusMonitor = new Thread(new ThreadStart(Monitor));
+
+		// Targets where to log to: File and Console
+		//var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
+			    
+		// Rules for mapping loggers to targets            
+		//config.AddRule(LogLevel.Info, LogLevel.Fatal, logconsole);
+		//config.AddRule(LogLevel.Debug, LogLevel.Info, LogLevel.Fatal, logfile);
+			    
+		// Apply config           
+		NLog.LogManager.Configuration = logConfig;
+
+		//NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 	}
 	
 
 	public void Open() {
+		if (debug>=1) {
+			var logfile = new NLog.Targets.FileTarget("logfile") { FileName = "log.txt" };
+			logConfig.AddRule(LogLevel.Debug, LogLevel.Fatal, logfile);
+		}
+		if (debug>=2) {
+			var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
+			logConfig.AddRule(LogLevel.Debug, LogLevel.Fatal, logconsole);
+		}
+		NLog.LogManager.Configuration = logConfig;
+		Logger.Info($"Opening serial port {serialPort.PortName}");
+			
 		serialPort.PortName = "/dev/ttyUSB0";
 		serialPort.BaudRate = 38400;
  		serialPort.DataReceived += new SerialDataReceivedEventHandler(DataReceivedHandler);
