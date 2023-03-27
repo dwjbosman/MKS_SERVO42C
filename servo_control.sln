@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServoControl", "ServoControl\ServoControl.csproj", "{E5C04784-6A22-48E8-B695-2B07ECB546D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServoControlUtil", "ServoControlUtil\ServoControlUtil.csproj", "{838A4FC7-801A-4C7D-A43B-8350475A5208}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E5C04784-6A22-48E8-B695-2B07ECB546D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5C04784-6A22-48E8-B695-2B07ECB546D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5C04784-6A22-48E8-B695-2B07ECB546D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5C04784-6A22-48E8-B695-2B07ECB546D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{838A4FC7-801A-4C7D-A43B-8350475A5208}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{838A4FC7-801A-4C7D-A43B-8350475A5208}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{838A4FC7-801A-4C7D-A43B-8350475A5208}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{838A4FC7-801A-4C7D-A43B-8350475A5208}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
