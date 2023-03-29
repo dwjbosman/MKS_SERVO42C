@@ -210,8 +210,31 @@ public class ServoController
 			
 			serialPort.Write(message,0, message.Length);		
 			return WaitForStatusResult();
+		}	
+	}
+
+	public bool SetConstantSpeed(int speed) {
+		byte[] message = new byte[4];
+		message[0] = clientAddress;
+		message[1] = (byte)0xF6;
+		message[2] = 0;
+		if (speed>=0) {
+			message[2] = 0;
+		} else {
+			message[2] = 128;
 		}
-		
+		speed = Math.Abs(speed);
+		message[2] = (byte)(message[2] | (speed & 0x7f));
+
+		SetChecksum(message);
+		lock(this) {
+			readerState = ReadState.ClientID;
+			waitForStatusResult = true;
+			
+			serialPort.Write(message,0, message.Length);		
+			return WaitForStatusResult();
+		}	
+	
 	}
 
 	private byte CalculateChecksum(byte[] message) {

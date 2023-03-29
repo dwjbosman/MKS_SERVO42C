@@ -10,11 +10,15 @@ namespace ServoControlUtil {
 		[Option('p', "port", Required = true, HelpText = "Serial port to connect to")]
 		public string Port { get; set; } = "/dev/ttyUSB0";
 
-		[Option('c', "command", Required = true, HelpText = "Motor command: Stop, Disable, Enable, GetPos")]
+		[Option('c', "command", Required = true, HelpText = "Motor command: Stop, Disable, Enable, GetPos, Speed")]
 		public string Command { get; set; } = "GetPos";
 
 		[Option('w', "wait", Required = false, HelpText = "  GetPos: keep reading encoder for 'wait' ms")]
 		public int Wait { get; set; } = 0;
+
+		[Option('s', "speed", Required = false, HelpText = "  Speed: set speed (-127..127)")]
+		public int Speed { get; set; } = 1;
+
 
 		[Option('e', "encoderRequestInterval", Required = false, HelpText = "Set the encoder request interval to x ms.")]
 		public int encoderRequestInterval { get; set; } = 0;
@@ -73,7 +77,15 @@ namespace ServoControlUtil {
 					}
 				}
 
+				if (o.Command == "Speed") {
+					Console.WriteLine("Enable constant speed: ", o.Speed);
+					c.SetConstantSpeed(o.Speed);
 
+					if (o.Wait !=0) {
+						// also monitor encoder
+						o.Command = "GetPos";
+					}
+				}
 
 				if (o.Command == "GetPos") {
 					Console.WriteLine("Getting motor position");
