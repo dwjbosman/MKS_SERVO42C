@@ -48,18 +48,10 @@ public class ServoController
 	public ServoController() {
 		serialPort = new SerialPort();	
 		statusMonitor = new Thread(new ThreadStart(Monitor));
-
-		// Targets where to log to: File and Console
-		//var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
-			    
-		// Rules for mapping loggers to targets            
-		//config.AddRule(LogLevel.Info, LogLevel.Fatal, logconsole);
-		//config.AddRule(LogLevel.Debug, LogLevel.Info, LogLevel.Fatal, logfile);
 			    
 		// Apply config           
 		NLog.LogManager.Configuration = logConfig;
 
-		//NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 	}
 	
 
@@ -94,7 +86,7 @@ public class ServoController
 		while (i<in_buffer.Length) {
 			if (readerState == ReadState.ClientID) {
 				if (in_buffer[i] == clientAddress) {
-					Console.WriteLine("Received client id");
+					Logger.Debug($"Received client id");
 					readerChecksum = clientAddress;
 					readerDataPosition=0;
 					readerState = ReadState.Data;
@@ -102,7 +94,7 @@ public class ServoController
 				i+=1;
 			} else if (readerState == ReadState.Data) {
 				if (readerDataPosition<expectedLength) {
-					Console.WriteLine($"Received data {readerDataPosition}/{expectedLength}");
+					Logger.Debug($"Received data {readerDataPosition}/{expectedLength}");
 					readerData[readerDataPosition] = in_buffer[i];
 					readerChecksum += in_buffer[i];
 					readerDataPosition++;
@@ -110,12 +102,12 @@ public class ServoController
 				} else {
 					readerState = ReadState.Checksum;
 					if (readerChecksum == in_buffer[i]) {
-						Console.WriteLine("Checksum ok");
+						Logger.Debug($"Checksum ok");
 						readerState = ReadState.Success;
 						i+=1;
 						return (i, true, false);
 					} else {
-						Console.WriteLine("Checksum err");
+						Logger.Debug($"Checksum err");
 						errorCount+=1;
 						readerState = ReadState.Failure;
 						// do not advance buffer position
@@ -133,12 +125,11 @@ public class ServoController
     {
 		SerialPort sp = (SerialPort)sender;
 		int avail = sp.BytesToRead;
-		Console.WriteLine("Data Received ", avail);
+		Logger.Debug($"Data Received {avail}");
 		
 		byte[] in_buffer = new byte[avail];
 		int actual = sp.Read(in_buffer,0, avail);
-
-		Console.WriteLine("Data Read :", actual);
+		Logger.Debug($"Data Read :{actual}");
 		
 		if (waitForEncoderResult) {
 			(int pos, bool success, bool failure) = processReceivedData(in_buffer, 2);
@@ -146,7 +137,7 @@ public class ServoController
 				processEncoderMessage();
 			}
 			if (failure) {
-				Console.WriteLine("Failed to read encoder message");
+				Logger.Error($"Failed to read encoder message");
 			}
 		} else if (waitForStatusResult) {
 			(int pos, bool success, bool failure) = processReceivedData(in_buffer, 1);	
@@ -154,42 +145,42 @@ public class ServoController
 				processStatusMessage();
 			}
 			if (failure) {
-				Console.WriteLine("Failed to read status message");
+				Logger.Error($"Failed to read status message");
 			}
 		}
 	}
 
 	private void processEncoderMessage() {
 		waitForEncoderResult = false;
-		Console.WriteLine("Process enc message");
+		Logger.Debug($"Process enc message");
 		if (readerDataPosition==2) {
 			readerState = ReadState.Decoded;
-			Console.WriteLine($"Process encoder message: {readerData[0]},{readerData[1]}");
+			Logger.Debug($"Process encoder message: {readerData[0]},{readerData[1]}");
 			encoderRead+=1;
 		} else {
 			readerState = ReadState.Failure;
 			errorCount+=1;
-			Console.WriteLine("Process encoder message - incorrect length");
+			Logger.Debug($"Process encoder message - incorrect length");
 		}
 	}
 
 	private void processStatusMessage() {
 		waitForStatusResult = false;
-		Console.WriteLine("Process status message");
+		Logger.Debug($"Process status message");
 			
 		if (readerDataPosition==1) {
 			if (readerData[0] == 1) {
 				readerState = ReadState.Decoded;
-				Console.WriteLine("Process status message - success");
+				Logger.Debug($"Process status message - success");
 			} else {
 				readerState = ReadState.Failure;
 				errorCount+=1;
-				Console.WriteLine("Process status - failure");
+				Logger.Debug($"Process status - failure");
 			}
 		} else {
 			readerState = ReadState.Failure;
 			errorCount+=1;
-			Console.WriteLine("Process status message - incorrect length");
+			Logger.Debug($"Process status message - incorrect length");
 		}
 	}
 	
@@ -201,8 +192,7 @@ public class ServoController
 		lock(this) {
 			readerState = ReadState.ClientID;
 			waitForStatusResult = true;
-
-			Console.WriteLine("Send Stop Motor");
+			Logger.Debug($"Send Stop Motor");
 			serialPort.Write(message,0, message.Length);
 			return WaitForStatusResult();
 		}
@@ -250,7 +240,7 @@ public class ServoController
 			time += 1;
 		}	
 		if (waitForStatusResult) {
-			Console.WriteLine("Timeout reading status result");
+			Logger.Debug($"Timeout reading status result");
 			waitForStatusResult = false;
 		}
 		return readerState == ReadState.Decoded;
@@ -265,7 +255,7 @@ public class ServoController
 			time += 1;
 		}	
 		if (waitForEncoderResult) {
-			Console.WriteLine("Timeout reading encoder result");
+			Logger.Debug($"Timeout reading encoder result");
 			waitForEncoderResult = false;
 		}
 		return readerState == ReadState.Decoded;
@@ -273,22 +263,28 @@ public class ServoController
 
 
 	private void Monitor() {
+		int tm = 0;
 		while (!stopMonitor) {
+			tm+=1;
 			if (serialPort.IsOpen) {
-				lock(this) {
-					RequestReadEncoder();
-					WaitForEncoderResult();
+				// not a very accurate way to measure time, but simple
+				if (tm>encoderRequestInterval) {
+					tm = 0;
+					lock(this) {
+						RequestReadEncoder();
+						WaitForEncoderResult();
+					}
 				}
 			} else {
-				Console.WriteLine("Serial port closed");
+				Logger.Debug($"Serial port closed");
 			}
-			Thread.Sleep(encoderRequestInterval);
+			Thread.Sleep(1);
 		}
-		Console.WriteLine("Exited monitor");
+		Logger.Debug($"Exited monitor");
 	}
 
 	private void RequestReadEncoder() {
-		Console.WriteLine("Auto Request encoder");
+		Logger.Debug($"Auto Request encoder");
 		byte[] message = new byte[3];
 		message[0] = clientAddress;
 		message[1] = 0x30;

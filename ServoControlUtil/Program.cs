@@ -26,6 +26,10 @@ namespace ServoControlUtil {
 	class Program {
 		static int Main(string[] args) {
 			Options o = Parser.Default.ParseArguments<Options>(args).Value;
+			if (o==null) {
+				return 1;
+			}
+			
 			ServoController c = new ServoController();
 			if (o.debug) {
 				c.debug = 2;
