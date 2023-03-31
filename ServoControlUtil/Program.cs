@@ -10,7 +10,7 @@ namespace ServoControlUtil {
 		[Option('p', "port", Required = true, HelpText = "Serial port to connect to")]
 		public string Port { get; set; } = "/dev/ttyUSB0";
 
-		[Option('c', "command", Required = true, HelpText = "Motor command: Stop, Disable, Enable, GetPos, Speed")]
+		[Option('c', "command", Required = true, HelpText = "Motor command: Stop, Disable, Enable, Speed, GetPos, GetShaftStatus, GetAngleError")]
 		public string Command { get; set; } = "GetPos";
 
 		[Option('w', "wait", Required = false, HelpText = "  GetPos: keep reading encoder for 'wait' ms")]
@@ -18,7 +18,6 @@ namespace ServoControlUtil {
 
 		[Option('s', "speed", Required = false, HelpText = "  Speed: set speed (-127..127)")]
 		public int Speed { get; set; } = 1;
-
 
 		[Option('e', "encoderRequestInterval", Required = false, HelpText = "Set the encoder request interval to x ms.")]
 		public int encoderRequestInterval { get; set; } = 0;
@@ -100,6 +99,28 @@ namespace ServoControlUtil {
 					} else {
 						Console.WriteLine(c.position);
 						return 0;
+					}
+				}
+				if (o.Command == "GetAngleError") {
+					Console.WriteLine("Getting motor angle error");
+					float angleError;
+					if (c.getAngleError(out angleError)) {
+						Console.WriteLine(angleError);
+						return 0;
+					} else {
+						Console.WriteLine(angleError);
+						return 1;
+					}
+				}
+				if (o.Command == "GetShaftStatus") {
+					Console.WriteLine("Getting motor angle error");
+					int shaftStatus;
+					if (c.getShaftStatus(out shaftStatus)) {
+						Console.WriteLine(shaftStatus);
+						return 0;
+					} else {
+						Console.WriteLine("Failed to retrieve shaft status");
+						return 1;
 					}
 				}
 				Console.WriteLine("Unknown command");
