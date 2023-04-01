@@ -249,6 +249,56 @@ public class ServoController
 		}	
 	}
 
+	public bool StallProtectEnable(bool ena) {
+		byte[] message = new byte[4];
+		message[0] = clientAddress;
+		message[1] = (byte)0x88;
+		message[2] = ena ? (byte)1 : (byte)0;
+		SetChecksum(message);
+		lock(this) {
+			readerState = ReadState.ClientID;
+			waitForDataResult = 1;
+			processMessageCallback = processStatusMessage; 
+			serialPort.Write(message,0, message.Length);		
+			return WaitForResult();
+		}	
+	}
+
+
+	public bool GoToPosition(int position,int speed) {
+		byte[] message = new byte[8];
+		message[0] = clientAddress;
+		message[1] = (byte)0xFD;
+		message[2] = 0;
+		if (speed>=0) {
+			message[2] = 0;
+		} else {
+			message[2] = 128;
+		}
+		speed = Math.Abs(speed);
+		message[2] = (byte)(message[2] | (speed & 0x7f));
+
+		message[3] = (byte)((position>>24) &0xff);
+		message[4] = (byte)((position>>16) &0xff);
+		message[5] = (byte)((position>>8) &0xff);
+		message[6] = (byte)(position & 0xff);
+
+		
+		Logger.Debug($"GoToPosition s={message[2]},p: {message[3]}, {message[4]}, {message[5]}, {message[6]}");
+
+		SetChecksum(message);
+		lock(this) {
+			readerState = ReadState.ClientID;
+			waitForDataResult = 1;
+			processMessageCallback = processStatusMessage; 
+				
+			serialPort.Write(message,0, message.Length);		
+			return WaitForResult();
+		}		
+	}
+
+	
+
 	public bool SetConstantSpeed(int speed) {
 		byte[] message = new byte[4];
 		message[0] = clientAddress;

@@ -10,14 +10,18 @@ namespace ServoControlUtil {
 		[Option('p', "port", Required = true, HelpText = "Serial port to connect to")]
 		public string Port { get; set; } = "/dev/ttyUSB0";
 
-		[Option('c', "command", Required = true, HelpText = "Motor command: Stop, Disable, Enable, Speed, GetPos, GetShaftStatus, GetAngleError")]
+		[Option('c', "command", Required = true, HelpText = "Motor command: Stop, Disable, Enable, Protect, Unprotect, Speed, GoToPosition, GetPos, GetShaftStatus, GetAngleError")]
 		public string Command { get; set; } = "GetPos";
 
 		[Option('w', "wait", Required = false, HelpText = "  GetPos: keep reading encoder for 'wait' ms")]
 		public int Wait { get; set; } = 0;
 
-		[Option('s', "speed", Required = false, HelpText = "  Speed: set speed (-127..127)")]
+		[Option('s', "speed", Required = false, HelpText = "  Speed, GoToPosition: set speed (-127..127)")]
 		public int Speed { get; set; } = 1;
+
+		[Option('n', "position", Required = false, HelpText = "  GoToPosition: set target position (0...)")]
+		public int Position { get; set; } = 0;
+
 
 		[Option('e', "encoderRequestInterval", Required = false, HelpText = "Set the encoder request interval to x ms.")]
 		public int encoderRequestInterval { get; set; } = 0;
@@ -75,6 +79,28 @@ namespace ServoControlUtil {
 						return 1;
 					}
 				}
+				if (o.Command == "Protect") {
+					Console.WriteLine("Enabling stall protection");
+					if (c.StallProtectEnable(true)) {
+						Console.WriteLine("Protection enabled");
+						return 0;
+					} else {
+						Console.WriteLine("Failed to enable stall protection");
+						return 1;
+					}
+				}
+
+				if (o.Command == "Unprotect") {
+					Console.WriteLine("Disabling stall protection");
+					if (c.StallProtectEnable(false)) {
+						Console.WriteLine("Protection disabled");
+						return 0;
+					} else {
+						Console.WriteLine("Failed to disable stall protection");
+						return 1;
+					}
+				}
+
 
 				if (o.Command == "Speed") {
 					Console.WriteLine("Enable constant speed: ", o.Speed);
@@ -90,6 +116,22 @@ namespace ServoControlUtil {
 						}
 					}
 				}
+
+				if (o.Command == "GoToPosition") {
+					Console.WriteLine($"Go To Position: speed={o.Speed}, pos={o.Position}");
+					if (!c.GoToPosition(o.Position,o.Speed)) {
+						Console.WriteLine("Error go to position");
+						return 1;
+					} else {
+						if (o.Wait !=0) {
+							// also monitor encoder
+							o.Command = "GetPos";
+						} else {
+							return 0;
+						}
+					}
+				}
+
 
 				if (o.Command == "GetPos") {
 					Console.WriteLine("Getting motor position");
