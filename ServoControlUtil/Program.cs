@@ -78,26 +78,35 @@ namespace ServoControlUtil {
 
 				if (o.Command == "Speed") {
 					Console.WriteLine("Enable constant speed: ", o.Speed);
-					c.SetConstantSpeed(o.Speed);
-
-					if (o.Wait !=0) {
-						// also monitor encoder
-						o.Command = "GetPos";
+					if (!c.SetConstantSpeed(o.Speed)) {
+						Console.WriteLine("Error setting speed");
+						return 1;
+					} else {
+						if (o.Wait !=0) {
+							// also monitor encoder
+							o.Command = "GetPos";
+						} else {
+							return 0;
+						}
 					}
 				}
 
 				if (o.Command == "GetPos") {
 					Console.WriteLine("Getting motor position");
 					int w = 0;
+					int oldEncoderRead = c.encoderRead;
 					while ( ((c.encoderRead ==0) && (w<100)) || ((w*100)<o.Wait))  {
 						Thread.Sleep(100);
 						w+=1;
+						if (c.encoderRead != oldEncoderRead) {
+							oldEncoderRead = c.encoderRead;
+							Console.WriteLine(c.position);
+						}
 					}
 					if (c.encoderRead == 0) {
 						Console.WriteLine("Failed to get encoder position");
 						return 1;
 					} else {
-						Console.WriteLine(c.position);
 						return 0;
 					}
 				}
@@ -113,7 +122,7 @@ namespace ServoControlUtil {
 					}
 				}
 				if (o.Command == "GetShaftStatus") {
-					Console.WriteLine("Getting motor angle error");
+					Console.WriteLine("Getting motor shaft status");
 					int shaftStatus;
 					if (c.getShaftStatus(out shaftStatus)) {
 						Console.WriteLine(shaftStatus);

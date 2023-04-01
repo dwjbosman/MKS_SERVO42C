@@ -84,8 +84,10 @@ public class ServoController
 	}	
 
 	public void Close() {
-		serialPort.Close();
-		stopMonitor = true;
+		lock (this) {
+			serialPort.Close();
+			stopMonitor = true;
+		}
 		
 	}
 
@@ -157,8 +159,9 @@ public class ServoController
 		Logger.Debug($"Process enc message");
 		if (readerDataPosition==2) {
 			readerState = ReadState.Decoded;
-			Logger.Debug($"Process encoder message: {readerData[0]},{readerData[1]}");
 			position = (readerData[0]<<8) + readerData[1];
+			
+			Logger.Debug($"Process encoder message: {readerData[0]},{readerData[1]} pos={position}");
 			encoderRead+=1;
 		} else {
 			readerState = ReadState.Failure;
@@ -186,7 +189,7 @@ public class ServoController
 
 	private void processMotorShaftStatusMessage() {
 		Logger.Debug($"Process shaft status message");
-		if (readerDataPosition==2) {
+		if (readerDataPosition==1) {
 			readerState = ReadState.Decoded;
 			Logger.Debug($"Process shaft status message: {readerData[0]}");
 			shaftStatus = readerData[0];
@@ -271,7 +274,7 @@ public class ServoController
 	}
 
 	public bool getAngleError(out float _angleError) {
-		byte[] message = new byte[2];
+		byte[] message = new byte[3];
 		message[0] = clientAddress;
 		message[1] = (byte)0x39;
 		SetChecksum(message);
@@ -292,15 +295,14 @@ public class ServoController
 	}
 
 	public bool getShaftStatus(out int _shaftStatus) {
-		byte[] message = new byte[2];
+		byte[] message = new byte[3];
 		message[0] = clientAddress;
 		message[1] = (byte)0x3e;
 		SetChecksum(message);
 		lock(this) {
 			readerState = ReadState.ClientID;
-			waitForDataResult = 2;
+			waitForDataResult = 1;
 			processMessageCallback = processMotorShaftStatusMessage; 
-			
 			serialPort.Write(message,0, message.Length);		
 			if (WaitForResult()) {
 				_shaftStatus = shaftStatus;
@@ -333,8 +335,8 @@ public class ServoController
 
 	private bool WaitForResult() {
 		int time = 0;
-		while ((time<5) && (waitForDataResult!=0)) {
-			Thread.Sleep(1000);
+		while ((time<5000) && (waitForDataResult!=0)) {
+			Thread.Sleep(1);
 			time += 1;
 		}	
 		if (waitForDataResult!=0) {
@@ -354,8 +356,10 @@ public class ServoController
 				if (tm>encoderRequestInterval) {
 					tm = 0;
 					lock(this) {
-						RequestReadEncoder();
-						WaitForResult();
+						if (!stopMonitor) {
+							RequestReadEncoder();
+							WaitForResult();
+						}
 					}
 				}
 			} else {
