@@ -8,6 +8,7 @@ After initial tests I don't advise to buy this item if you plan to use UART mode
 2. The encoder message of the V1.1. motor is 16 bits. You have to regularly read the encoder to correctly detect wrap around. They seem to have fixed this in V1.1.2. But there is no way to update the firmware as this has not been released!
 2. There is a command to protect against stall. However if the stall protection is triggered the motor no longer accepts commands via UART. You will have to press a button to release the motor. The release command via UART doesn't work.
 
-
+Observations:
+1. With mstep=256 when giving the motor a command to move 10000 pulses the encoder value changes by 12846
 
 
