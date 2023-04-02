@@ -11,5 +11,5 @@ After initial tests I don't advise to buy this item if you plan to use UART mode
 Observations:
 1. With mstep=256 when giving the motor a command to move 10000 pulses the encoder value changes by 12846
 2. With mstep=256 and speed=10 the encoder changes by about 7000 per second.
-
+3. With mstep=256 a revolution seems to equal 52000 pulses.
 
