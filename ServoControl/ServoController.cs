@@ -4,7 +4,7 @@ using System.Threading;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
-
+using System.Diagnostics;
 namespace ServoControl;
 
 public delegate void ProcessReceivedMessageCallBack();
@@ -42,8 +42,11 @@ public class ServoController
 	// these values are updated automatically by a thread
 	public int encoderRead { get; private set;} = 0;
 	public int position { get; private set; } =0;
-	public int encoderRequestInterval { get; set; } = 2000;
-	
+	public float estimatedSpeed { get; private set; } =0;
+	public int encoderRequestInterval { get; set; } = 100;
+	private Stopwatch encoderReadTimer = new Stopwatch();
+	private long encoderReadTime = 0;
+
 	// these values are only updated after calling a method
 	public float angleError {get; private set;} = 0.0f;
 	public int shaftStatus {get; private set;} = 0;
@@ -59,7 +62,7 @@ public class ServoController
 			    
 		// Apply config           
 		NLog.LogManager.Configuration = logConfig;
-
+		encoderReadTimer.Start();
 	}
 	
 
@@ -159,8 +162,17 @@ public class ServoController
 		Logger.Debug($"Process enc message");
 		if (readerDataPosition==2) {
 			readerState = ReadState.Decoded;
-			position = (readerData[0]<<8) + readerData[1];
-			
+			int newPosition = (readerData[0]<<8) + readerData[1];
+		
+			long newTime_us = encoderReadTimer.ElapsedTicks / (Stopwatch.Frequency / (1000L*1000L));
+			long dt = newTime_us - encoderReadTime;
+
+			int dx = newPosition - position;
+			estimatedSpeed = (float)dx/(((float)dt)/1000000.0f);
+			//Console.WriteLine($"dx={dx} dt={dt} us={newTime_us}");
+			encoderReadTime = newTime_us;	
+			position = newPosition;
+
 			Logger.Debug($"Process encoder message: {readerData[0]},{readerData[1]} pos={position}");
 			encoderRead+=1;
 		} else {
@@ -251,6 +263,7 @@ public class ServoController
 
 	/*
 	 * This also disables stall protection!
+	 * Doesn't work as advertised
 	 */
 	public bool ReleaseProtection() {
 		byte[] message = new byte[3];
