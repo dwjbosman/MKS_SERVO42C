@@ -10,7 +10,7 @@ namespace ServoControlUtil {
 		[Option('p', "port", Required = true, HelpText = "Serial port to connect to")]
 		public string Port { get; set; } = "/dev/ttyUSB0";
 
-		[Option('c', "command", Required = true, HelpText = "Motor command: Stop, Disable, Enable, Protect, Unprotect, Speed, GoToPosition, GetPos, GetShaftStatus, GetAngleError")]
+		[Option('c', "command", Required = true, HelpText = "Motor command: Stop, Disable, Enable, Protect, Unprotect, Release, Speed, GoToPosition, GetPos, GetShaftStatus, GetAngleError")]
 		public string Command { get; set; } = "GetPos";
 
 		[Option('w', "wait", Required = false, HelpText = "  GetPos: keep reading encoder for 'wait' ms")]
@@ -98,6 +98,28 @@ namespace ServoControlUtil {
 					} else {
 						Console.WriteLine("Failed to disable stall protection");
 						return 1;
+					}
+				}
+
+				if (o.Command == "Release") {
+					Console.WriteLine("Release stall protection");
+					if (c.StallProtectEnable(false)) {
+						Console.WriteLine("Released stall protection");
+						return 0;
+					} else {
+						Console.WriteLine("Failed to release stall protection");
+						return 1;
+					}
+				}
+
+				if (o.Command == "TestCommand") {
+					Console.WriteLine("TestCommand");
+					for (byte cmd=0; cmd<255; cmd++) {
+						if (c.TestCommand(cmd)) {
+							Console.WriteLine($"{cmd} successfull");
+						} else {
+							Console.WriteLine($"{cmd} nack");
+						}
 					}
 				}
 

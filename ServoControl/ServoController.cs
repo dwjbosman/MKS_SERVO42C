@@ -249,6 +249,39 @@ public class ServoController
 		}	
 	}
 
+	/*
+	 * This also disables stall protection!
+	 */
+	public bool ReleaseProtection() {
+		byte[] message = new byte[3];
+		message[0] = clientAddress;
+		message[1] = (byte)0x3D;
+		SetChecksum(message);
+		lock(this) {
+			readerState = ReadState.ClientID;
+			waitForDataResult = 1;
+			processMessageCallback = processStatusMessage; 
+			serialPort.Write(message,0, message.Length);		
+			return WaitForResult();
+		}	
+		
+	}
+
+	public bool TestCommand(byte cmd) {
+		byte[] message = new byte[3];
+		message[0] = clientAddress;
+		message[1] = (byte)cmd;
+		SetChecksum(message);
+		lock(this) {
+			readerState = ReadState.ClientID;
+			waitForDataResult = 1;
+			processMessageCallback = processStatusMessage; 
+			serialPort.Write(message,0, message.Length);		
+			return WaitForResult();
+		}	
+		
+	}
+
 	public bool StallProtectEnable(bool ena) {
 		byte[] message = new byte[4];
 		message[0] = clientAddress;
@@ -385,7 +418,7 @@ public class ServoController
 
 	private bool WaitForResult() {
 		int time = 0;
-		while ((time<5000) && (waitForDataResult!=0)) {
+		while ((time<1000) && (waitForDataResult!=0)) {
 			Thread.Sleep(1);
 			time += 1;
 		}	
