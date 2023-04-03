@@ -164,7 +164,7 @@ namespace ServoControlUtil {
 						w+=1;
 						if (c.encoderRead != oldEncoderRead) {
 							oldEncoderRead = c.encoderRead;
-							Console.WriteLine($"{c.position}, {c.estimatedSpeed}");
+							Console.WriteLine($"{c.absPosition}, {c.estimatedSpeed}");
 						}
 					}
 					if (c.encoderRead == 0) {

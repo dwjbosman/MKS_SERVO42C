@@ -42,11 +42,13 @@ public class ServoController
 	// these values are updated automatically by a thread
 	public int encoderRead { get; private set;} = 0;
 	public int position { get; private set; } =0;
+	public int absPosition { get; private set; } =0;
 	public float estimatedSpeed { get; private set; } =0;
 	public int encoderRequestInterval { get; set; } = 100;
 	private Stopwatch encoderReadTimer = new Stopwatch();
-	private long encoderReadTime = 0;
-
+	private long encoderRequestTime = 0;
+	private long previousEncoderReadTime = 0;
+	
 	// these values are only updated after calling a method
 	public float angleError {get; private set;} = 0.0f;
 	public int shaftStatus {get; private set;} = 0;
@@ -164,13 +166,25 @@ public class ServoController
 			readerState = ReadState.Decoded;
 			int newPosition = (readerData[0]<<8) + readerData[1];
 		
-			long newTime_us = encoderReadTimer.ElapsedTicks / (Stopwatch.Frequency / (1000L*1000L));
-			long dt = newTime_us - encoderReadTime;
+			long dt = encoderRequestTime - previousEncoderReadTime;
 
-			int dx = newPosition - position;
+			int dx1 = newPosition - position;
+			int dx2 = newPosition + 65536 - position;
+			int dx3 = newPosition - 65536 - position;
+			int dx = 0;
+			if (Math.Abs(dx1) < Math.Abs(dx2)) {
+				dx = dx1;	
+			} else {
+				dx = dx2;
+			}
+			if (Math.Abs(dx3) < Math.Abs(dx)) {
+				dx = dx3;
+			}
+		
+			absPosition+=dx;
 			estimatedSpeed = (float)dx/(((float)dt)/1000000.0f);
-			//Console.WriteLine($"dx={dx} dt={dt} us={newTime_us}");
-			encoderReadTime = newTime_us;	
+			//Console.WriteLine($"dx1={dx1} dx2={dx2} dx3={dx3} dx={dx} dt={dt}");
+			previousEncoderReadTime = encoderRequestTime;	
 			position = newPosition;
 
 			Logger.Debug($"Process encoder message: {readerData[0]},{readerData[1]} pos={position}");
@@ -476,6 +490,7 @@ public class ServoController
 		readerState = ReadState.ClientID;
 		waitForDataResult = 2;
 		processMessageCallback = processEncoderMessage;
+		encoderRequestTime = encoderReadTimer.ElapsedTicks / (Stopwatch.Frequency / (1000L*1000L));
 		serialPort.Write(message,0, message.Length);
 			
 	}
