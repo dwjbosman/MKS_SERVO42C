@@ -10,16 +10,16 @@ namespace ServoControlUtil {
 		[Option('p', "port", Required = true, HelpText = "Serial port to connect to")]
 		public string Port { get; set; } = "/dev/ttyUSB0";
 
-		[Option('c', "command", Required = true, HelpText = "Motor command: Stop, Disable, Enable, Protect, Unprotect, Release, Speed, GoToPosition, GetPos, GetShaftStatus, GetAngleError")]
+		[Option('c', "command", Required = true, HelpText = "Motor command: Stop, Disable, Enable, Protect, Unprotect, Release, Speed, Move, GoLimit, GetPos, GetShaftStatus, GetAngleError")]
 		public string Command { get; set; } = "GetPos";
 
-		[Option('w', "wait", Required = false, HelpText = "  GetPos: keep reading encoder for 'wait' ms")]
+		[Option('w', "wait", Required = false, HelpText = "  GetPos, GoLimit: keep checking for 'wait' ms")]
 		public int Wait { get; set; } = 0;
 
-		[Option('s', "speed", Required = false, HelpText = "  Speed, GoToPosition: set speed (-127..127)")]
+		[Option('s', "speed", Required = false, HelpText = "  Speed, Move,GoLimit: set speed (-127..127)")]
 		public int Speed { get; set; } = 1;
 
-		[Option('n', "position", Required = false, HelpText = "  GoToPosition: set target position (0...)")]
+		[Option('n', "position", Required = false, HelpText = "  Move: set target position (0...)")]
 		public int Position { get; set; } = 0;
 
 
@@ -123,10 +123,20 @@ namespace ServoControlUtil {
 					}
 				}
 
+				if (o.Command == "GoLimit") {
+					Console.WriteLine($"Enable constant speed {o.Command} with speed {o.Speed}");
+					if (!c.FindLimit(o.Speed, o.Wait)) {
+						Console.WriteLine("Error reaching limit");
+						return 1;
+					}
+					return 0;
+				}
+
+
 
 				if (o.Command == "Speed") {
-					Console.WriteLine("Enable constant speed: ", o.Speed);
-					if (!c.SetConstantSpeed(o.Speed)) {
+					Console.WriteLine($"Enable constant speed {o.Command} with speed {o.Speed}");
+					if (!c.SetConstantSpeed(o.Speed, false)) {
 						Console.WriteLine("Error setting speed");
 						return 1;
 					} else {
@@ -139,9 +149,9 @@ namespace ServoControlUtil {
 					}
 				}
 
-				if (o.Command == "GoToPosition") {
-					Console.WriteLine($"Go To Position: speed={o.Speed}, pos={o.Position}");
-					if (!c.GoToPosition(o.Position,o.Speed)) {
+				if (o.Command == "Move") {
+					Console.WriteLine($"Move: speed={o.Speed}, pos={o.Position}");
+					if (!c.Move(o.Position,o.Speed)) {
 						Console.WriteLine("Error go to position");
 						return 1;
 					} else {
@@ -164,7 +174,7 @@ namespace ServoControlUtil {
 						w+=1;
 						if (c.encoderRead != oldEncoderRead) {
 							oldEncoderRead = c.encoderRead;
-							Console.WriteLine($"{c.absPosition}, {c.estimatedSpeed}");
+							Console.WriteLine($"{c.absEncoderPosition}, {c.estimatedEncoderSpeed}");
 						}
 					}
 					if (c.encoderRead == 0) {

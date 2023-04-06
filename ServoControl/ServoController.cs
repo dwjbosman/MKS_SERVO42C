@@ -25,6 +25,7 @@ public class ServoController
 
 	private SerialPort serialPort;
 	private Thread statusMonitor;
+	private string commandInfo = "";
 	private ReadState readerState = ReadState.ClientID;
 	private byte readerChecksum = 0;
 	private byte[] readerData = new byte[255];
@@ -41,9 +42,9 @@ public class ServoController
 	
 	// these values are updated automatically by a thread
 	public int encoderRead { get; private set;} = 0;
-	public int position { get; private set; } =0;
-	public int absPosition { get; private set; } =0;
-	public float estimatedSpeed { get; private set; } =0;
+	public int encoderPosition { get; private set; } =0;
+	public int absEncoderPosition { get; private set; } =0;
+	public float estimatedEncoderSpeed { get; private set; } =0;
 	public int encoderRequestInterval { get; set; } = 100;
 	private Stopwatch encoderReadTimer = new Stopwatch();
 	private long encoderRequestTime = 0;
@@ -52,6 +53,12 @@ public class ServoController
 	// these values are only updated after calling a method
 	public float angleError {get; private set;} = 0.0f;
 	public int shaftStatus {get; private set;} = 0;
+
+	public bool powerEnabled {get; private set;} = false;
+
+	public bool constantSpeedEnabled {get; private set;} = false;
+	public bool constantSpeedGuard {get; private set;} = false;
+	private int constantSpeedSetpoint = 0;
 
 	public int debug { get; set; } = 0;
 
@@ -101,7 +108,7 @@ public class ServoController
 		while (i<in_buffer.Length) {
 			if (readerState == ReadState.ClientID) {
 				if (in_buffer[i] == clientAddress) {
-					Logger.Debug($"Received client id");
+					Logger.Debug($"{commandInfo}: Received client id");
 					readerChecksum = clientAddress;
 					readerDataPosition=0;
 					readerState = ReadState.Data;
@@ -109,7 +116,7 @@ public class ServoController
 				i+=1;
 			} else if (readerState == ReadState.Data) {
 				if (readerDataPosition<expectedLength) {
-					Logger.Debug($"Received data {readerDataPosition}/{expectedLength}");
+					Logger.Debug($"{commandInfo}: Received data {readerDataPosition}/{expectedLength}");
 					readerData[readerDataPosition] = in_buffer[i];
 					readerChecksum += in_buffer[i];
 					readerDataPosition++;
@@ -117,12 +124,12 @@ public class ServoController
 				} else {
 					readerState = ReadState.Checksum;
 					if (readerChecksum == in_buffer[i]) {
-						Logger.Debug($"Checksum ok");
+						Logger.Debug($"{commandInfo}: Checksum ok");
 						readerState = ReadState.Success;
 						i+=1;
 						return (i, true, false);
 					} else {
-						Logger.Debug($"Checksum err");
+						Logger.Debug($"{commandInfo}: Checksum err");
 						errorCount+=1;
 						readerState = ReadState.Failure;
 						// do not advance buffer position
@@ -140,23 +147,25 @@ public class ServoController
     {
 		SerialPort sp = (SerialPort)sender;
 		int avail = sp.BytesToRead;
-		Logger.Debug($"Data Received {avail}");
+		Logger.Debug($"{commandInfo}: Data Received {avail}");
 		
 		byte[] in_buffer = new byte[avail];
 		int actual = sp.Read(in_buffer,0, avail);
-		Logger.Debug($"Data Read :{actual}");
+		Logger.Debug($"{commandInfo}: Data Read :{actual}");
 		
 		if (waitForDataResult!=0) {
 			(int pos, bool success, bool failure) = processReceivedData(in_buffer, waitForDataResult);
 			if (success) {
 				if (processMessageCallback != null) {
+					Logger.Debug($"{commandInfo}: run callback");
 					processMessageCallback();
 				}
 			}
-			waitForDataResult = 0;
 			if (failure) {
-				Logger.Error($"Failed to read data message");
+				Logger.Error($"{commandInfo}: Failed to read data message");
 			}
+			waitForDataResult = 0;
+			commandInfo = "";
 		}
 	}
 
@@ -164,13 +173,13 @@ public class ServoController
 		Logger.Debug($"Process enc message");
 		if (readerDataPosition==2) {
 			readerState = ReadState.Decoded;
-			int newPosition = (readerData[0]<<8) + readerData[1];
+			int newEncoderPosition = (readerData[0]<<8) + readerData[1];
 		
 			long dt = encoderRequestTime - previousEncoderReadTime;
 
-			int dx1 = newPosition - position;
-			int dx2 = newPosition + 65536 - position;
-			int dx3 = newPosition - 65536 - position;
+			int dx1 = newEncoderPosition - encoderPosition;
+			int dx2 = newEncoderPosition + 65536 - encoderPosition;
+			int dx3 = newEncoderPosition - 65536 - encoderPosition;
 			int dx = 0;
 			if (Math.Abs(dx1) < Math.Abs(dx2)) {
 				dx = dx1;	
@@ -181,13 +190,24 @@ public class ServoController
 				dx = dx3;
 			}
 		
-			absPosition+=dx;
-			estimatedSpeed = (float)dx/(((float)dt)/1000000.0f);
+			absEncoderPosition+=dx;
+			estimatedEncoderSpeed = (float)dx/(((float)dt)/1000000.0f);
 			//Console.WriteLine($"dx1={dx1} dx2={dx2} dx3={dx3} dx={dx} dt={dt}");
 			previousEncoderReadTime = encoderRequestTime;	
-			position = newPosition;
+			encoderPosition = newEncoderPosition;
 
-			Logger.Debug($"Process encoder message: {readerData[0]},{readerData[1]} pos={position}");
+			if (constantSpeedEnabled && constantSpeedGuard) {
+				float expectedEncoderSpeed = constantSpeedSetpoint*700;
+				float speedDiff = estimatedEncoderSpeed - expectedEncoderSpeed; 
+				Logger.Debug($"Guard encoder speed, expected {expectedEncoderSpeed} diff={speedDiff}");
+				if (Math.Abs(estimatedEncoderSpeed)<(Math.Abs(expectedEncoderSpeed)*0.25)) {
+					Logger.Debug($"Guard encoder stall detected");
+					// stall detected
+					PowerEnable(false);
+				}
+			}
+
+			Logger.Debug($"Process encoder message: pos={encoderPosition} sp={estimatedEncoderSpeed}");
 			encoderRead+=1;
 		} else {
 			readerState = ReadState.Failure;
@@ -225,6 +245,25 @@ public class ServoController
 		}
 	}
 
+	private void processPowerEnableStatusMessage() {
+		Logger.Debug($"Process power enable status message");
+		if (readerDataPosition==1) {
+			readerState = ReadState.Decoded;
+			Logger.Debug($"Process power enable status message: {readerData[0]}");
+			if (readerData[0]==1) {
+				powerEnabled = true;
+			} else if (readerData[0]==2) {
+				powerEnabled = false;
+			} else {
+				readerState = ReadState.Failure;
+				Logger.Debug($"Process power enable status message - error result");
+			}
+		} else {
+			readerState = ReadState.Failure;
+			Logger.Debug($"Process power enable status message - incorrect length");
+		}
+	}
+
 
 	private void processStatusMessage() {
 		Logger.Debug($"Process status message");
@@ -251,13 +290,34 @@ public class ServoController
 		message[1] = (byte)0xF7;
 		SetChecksum(message);
 		lock(this) {
+			commandInfo = "StopMotor";
 			readerState = ReadState.ClientID;
 			waitForDataResult = 1;
 			processMessageCallback = processStatusMessage; 
-			Logger.Debug($"Send Stop Motor");
+			constantSpeedEnabled = false;
+			Logger.Debug($"Send {commandInfo} command");
 			serialPort.Write(message,0, message.Length);
 			return WaitForResult();
 		}
+	}
+
+	public bool GetPowerEnable(out bool ena) {
+		byte[] message = new byte[3];
+		message[0] = clientAddress;
+		message[1] = (byte)0x3a;
+		SetChecksum(message);
+		bool result = false;
+		lock(this) {
+			commandInfo = "GetPowerEnable";
+			readerState = ReadState.ClientID;
+			waitForDataResult = 1;
+			processMessageCallback = processPowerEnableStatusMessage; 
+			Logger.Debug($"Send {commandInfo} command");
+			serialPort.Write(message,0, message.Length);		
+			result =  WaitForResult();
+		}
+		ena = powerEnabled;
+		return result;		
 	}
 
 	public bool PowerEnable(bool ena) {
@@ -267,9 +327,12 @@ public class ServoController
 		message[2] = ena ? (byte)1 : (byte)0;
 		SetChecksum(message);
 		lock(this) {
+			commandInfo = "PowerEnable";
 			readerState = ReadState.ClientID;
 			waitForDataResult = 1;
+			constantSpeedEnabled = false;
 			processMessageCallback = processStatusMessage; 
+			Logger.Debug($"Send {commandInfo} command");
 			serialPort.Write(message,0, message.Length);		
 			return WaitForResult();
 		}	
@@ -285,9 +348,11 @@ public class ServoController
 		message[1] = (byte)0x3D;
 		SetChecksum(message);
 		lock(this) {
+			commandInfo = "ReleaseProtection";
 			readerState = ReadState.ClientID;
 			waitForDataResult = 1;
 			processMessageCallback = processStatusMessage; 
+			Logger.Debug($"Send {commandInfo} command");
 			serialPort.Write(message,0, message.Length);		
 			return WaitForResult();
 		}	
@@ -316,16 +381,19 @@ public class ServoController
 		message[2] = ena ? (byte)1 : (byte)0;
 		SetChecksum(message);
 		lock(this) {
+			commandInfo = "StallProtectionEnable";
 			readerState = ReadState.ClientID;
 			waitForDataResult = 1;
 			processMessageCallback = processStatusMessage; 
+			Logger.Debug($"Send {commandInfo} command");
 			serialPort.Write(message,0, message.Length);		
 			return WaitForResult();
 		}	
 	}
 
 
-	public bool GoToPosition(int position,int speed) {
+	// position in pulses (different from encoderPosition)
+	public bool Move(int deltaPosition,int speed) {
 		byte[] message = new byte[8];
 		message[0] = clientAddress;
 		message[1] = (byte)0xFD;
@@ -338,28 +406,68 @@ public class ServoController
 		speed = Math.Abs(speed);
 		message[2] = (byte)(message[2] | (speed & 0x7f));
 
-		message[3] = (byte)((position>>24) &0xff);
-		message[4] = (byte)((position>>16) &0xff);
-		message[5] = (byte)((position>>8) &0xff);
-		message[6] = (byte)(position & 0xff);
+		message[3] = (byte)((deltaPosition>>24) &0xff);
+		message[4] = (byte)((deltaPosition>>16) &0xff);
+		message[5] = (byte)((deltaPosition>>8) &0xff);
+		message[6] = (byte)(deltaPosition & 0xff);
 
 		
 		Logger.Debug($"GoToPosition s={message[2]},p: {message[3]}, {message[4]}, {message[5]}, {message[6]}");
 
 		SetChecksum(message);
 		lock(this) {
+			commandInfo = "Move";
 			readerState = ReadState.ClientID;
 			waitForDataResult = 1;
 			processMessageCallback = processStatusMessage; 
-				
+			
+			constantSpeedEnabled = false;
+			
+			Logger.Debug($"Send {commandInfo} command");
 			serialPort.Write(message,0, message.Length);		
 			return WaitForResult();
 		}		
 	}
 
-	
+	public bool FindLimit(int speed=10, int timeoutMs = 5000) {
+		try {
+			if (!StallProtectEnable(false)) {
+				Logger.Error("Could not disable Stall protection");
+				return false;
+			}
+			if (!PowerEnable(true)) {
+				Logger.Error("Could not enable power");
+				return false;
+			}
+			encoderRequestInterval = 100; // 10/s
+			SetConstantSpeed(speed,true);
+			
+			
+			Stopwatch timeoutCheck = new Stopwatch();
+			timeoutCheck.Start();
+			while ((timeoutCheck.ElapsedTicks / (Stopwatch.Frequency / (1000L)))<timeoutMs) {
+				bool enabled;
+				if (!GetPowerEnable(out enabled)) {
+					Logger.Debug("FindLimit - could not check motor power");
+					// error reading result
+					return false;
+				}
+				if (!enabled) {
+					// limit found
+					return true;
+				}
+				Thread.Sleep(500);
+			}
+			// timeout reached
+			Logger.Debug("FindLimit timeout reached");
+			return false;
+		} finally {
+			// TODO only enable if it was enabled when calling the method
+			StallProtectEnable(true);
+		}
+	}	
 
-	public bool SetConstantSpeed(int speed) {
+	public bool SetConstantSpeed(int speed, bool guard) {
 		byte[] message = new byte[4];
 		message[0] = clientAddress;
 		message[1] = (byte)0xF6;
@@ -374,10 +482,14 @@ public class ServoController
 
 		SetChecksum(message);
 		lock(this) {
+			commandInfo = "SetConstantSpeed";
 			readerState = ReadState.ClientID;
 			waitForDataResult = 1;
 			processMessageCallback = processStatusMessage; 
-				
+			constantSpeedSetpoint = speed;
+			constantSpeedEnabled = true;
+			constantSpeedGuard = guard;
+			Logger.Debug($"Send {commandInfo} command");
 			serialPort.Write(message,0, message.Length);		
 			return WaitForResult();
 		}		
@@ -389,10 +501,12 @@ public class ServoController
 		message[1] = (byte)0x39;
 		SetChecksum(message);
 		lock(this) {
+			commandInfo = "GetAngleError";
 			readerState = ReadState.ClientID;
 			waitForDataResult = 2;
 			processMessageCallback = processAngleErrorMessage; 
 			
+			Logger.Debug($"Send {commandInfo} command");
 			serialPort.Write(message,0, message.Length);		
 			if (WaitForResult()) {
 				_angleError = angleError;
@@ -410,9 +524,11 @@ public class ServoController
 		message[1] = (byte)0x3e;
 		SetChecksum(message);
 		lock(this) {
+			commandInfo = "GetShaftStatus";
 			readerState = ReadState.ClientID;
 			waitForDataResult = 1;
 			processMessageCallback = processMotorShaftStatusMessage; 
+			Logger.Debug($"Send {commandInfo} command");
 			serialPort.Write(message,0, message.Length);		
 			if (WaitForResult()) {
 				_shaftStatus = shaftStatus;
@@ -491,6 +607,7 @@ public class ServoController
 		waitForDataResult = 2;
 		processMessageCallback = processEncoderMessage;
 		encoderRequestTime = encoderReadTimer.ElapsedTicks / (Stopwatch.Frequency / (1000L*1000L));
+		Logger.Debug($"Send get encoder command");
 		serialPort.Write(message,0, message.Length);
 			
 	}
