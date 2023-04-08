@@ -312,11 +312,11 @@ public class ServoController
 	}
 
 	private void EndCommand(string cmdId) {
+		string cmds = string.Join(",", executingCommands);
 		Logger.Debug($"End {commandId} command (other {cmds})");
 		waitForDataResult = 0;
 		commandId = "";		
 		executingCommands.Remove(cmdId);
-		string cmds = string.Join(",", executingCommands);
 	}
 
 	public bool StopMotor(bool doLock = true) {
@@ -504,6 +504,8 @@ public class ServoController
 				if (!enabled) {
 					// limit found
 					Logger.Debug("FindLimit - ok");
+					// delay, otherwise hwstallprotect will kick in
+					Thread.Sleep(1000);
 					return true;
 				}
 				Thread.Sleep(500);
@@ -513,7 +515,7 @@ public class ServoController
 			return false;
 		} finally {
 			// TODO only enable if it was enabled when calling the method
-			HWStallProtectEnable(true);
+			//HWStallProtectEnable(true);
 		}
 	}	
 
