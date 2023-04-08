@@ -63,6 +63,7 @@ public class ServoController
 
 	public bool constantSpeedEnabled {get; private set;} = false;
 	public bool constantSpeedGuard {get; private set;} = false;
+	public bool stallDetected {get; private set;} = false;
 	private int constantSpeedSetpoint = 0;
 
 	public int debug { get; set; } = 0;
@@ -211,9 +212,7 @@ public class ServoController
 				Logger.Debug($"Guard encoder speed, expected {expectedEncoderSpeed} diff={speedDiff}");
 				if (Math.Abs(estimatedEncoderSpeed)<(Math.Abs(expectedEncoderSpeed)*0.25)) {
 					Logger.Debug($"Guard encoder stall detected");
-					// stall detected
-					PowerEnable(false);
-					StopMotor();
+					stallDetected = true;
 				}
 			}
 
@@ -313,62 +312,93 @@ public class ServoController
 	}
 
 	private void EndCommand(string cmdId) {
+		Logger.Debug($"End {commandId} command (other {cmds})");
 		waitForDataResult = 0;
+		commandId = "";		
 		executingCommands.Remove(cmdId);
 		string cmds = string.Join(",", executingCommands);
-		Logger.Debug($"End {commandId} command (other {cmds})");
-		commandId = "";		
 	}
 
-	public bool StopMotor() {
+	public bool StopMotor(bool doLock = true) {
 		byte[] message = new byte[3];
 		message[0] = clientAddress;
 		message[1] = (byte)0xF7;
 		SetChecksum(message);
-		lock(this) {
+
+		bool _runcmd() {
 			string cmdid = StartCommand("StopMotor", 1, processStatusMessage);
 			constantSpeedEnabled = false;
 			serialPort.Write(message,0, message.Length);
 			return WaitForResult(cmdid);
 		}
+
+		if (doLock) {
+			lock(this) {
+				return _runcmd();
+			}
+		} else {
+			return _runcmd();
+		}
 	}
 
-	public bool GetPowerEnable(out bool ena) {
+	public bool GetPowerEnable(out bool ena, bool doLock = true) {
 		byte[] message = new byte[3];
 		message[0] = clientAddress;
 		message[1] = (byte)0x3a;
 		SetChecksum(message);
 		bool result = false;
-		lock(this) {
+		
+		void _runcmd() {
 			string cmdid = StartCommand("GetPowerEnable", 1, processPowerEnableStatusMessage);
 			serialPort.Write(message,0, message.Length);		
 			result =  WaitForResult(cmdid);
+		}
+		
+		if (doLock) {
+			lock(this) {
+				_runcmd();
+			}
+		} else {
+			_runcmd();
 		}
 		ena = powerEnabled;
 		return result;		
 	}
 
-	public bool PowerEnable(bool ena) {
+	public bool PowerEnable(bool ena, bool doLock = true) {
 		byte[] message = new byte[4];
 		message[0] = clientAddress;
 		message[1] = (byte)0xF3;
 		message[2] = ena ? (byte)1 : (byte)0;
 		SetChecksum(message);
-		Logger.Debug("Prepared PowerEnable message, acquire lock");
-		lock(this) {
-			Logger.Debug("Prepared PowerEnable message, acquire lock done");
+		//Logger.Debug("Prepared PowerEnable message, acquire lock");
+		
+		bool _runcmd() {
+			//Logger.Debug("Prepared PowerEnable message, acquire lock done");
 			string cmdid = StartCommand("PowerEnable", 1, processStatusMessage);
 			constantSpeedEnabled = false;
 			serialPort.Write(message,0, message.Length);		
-			return WaitForResult(cmdid);
-		}	
+			bool result = WaitForResult(cmdid);
+			if (result) {
+				powerEnabled = ena;
+			}
+			return result;
+		}
+			
+		if (doLock) {
+			lock(this) {
+				return _runcmd();
+			}	
+		} else {
+			return _runcmd();
+		}
 	}
 
 	/*
 	 * This also disables stall protection!
 	 * Doesn't work as advertised
 	 */
-	public bool ReleaseProtection() {
+	public bool ReleaseHWProtection() {
 		byte[] message = new byte[3];
 		message[0] = clientAddress;
 		message[1] = (byte)0x3D;
@@ -379,6 +409,10 @@ public class ServoController
 			return WaitForResult(cmdid);
 		}	
 		
+	}
+
+	public void ReleaseSWProtection() {
+		stallDetected = false;
 	}
 
 	public bool TestCommand(byte cmd) {
@@ -394,7 +428,7 @@ public class ServoController
 		
 	}
 
-	public bool StallProtectEnable(bool ena) {
+	public bool HWStallProtectEnable(bool ena) {
 		byte[] message = new byte[4];
 		message[0] = clientAddress;
 		message[1] = (byte)0x88;
@@ -445,7 +479,7 @@ public class ServoController
 				Logger.Error("Could not stop motor");
 				return false;
 			}
-			if (!StallProtectEnable(false)) {
+			if (!HWStallProtectEnable(false)) {
 				Logger.Error("Could not disable Stall protection");
 				return false;
 			}
@@ -469,6 +503,7 @@ public class ServoController
 				}
 				if (!enabled) {
 					// limit found
+					Logger.Debug("FindLimit - ok");
 					return true;
 				}
 				Thread.Sleep(500);
@@ -478,7 +513,7 @@ public class ServoController
 			return false;
 		} finally {
 			// TODO only enable if it was enabled when calling the method
-			StallProtectEnable(true);
+			HWStallProtectEnable(true);
 		}
 	}	
 
@@ -590,6 +625,11 @@ public class ServoController
 					lock(this) {
 						if (!stopMonitor) {
 							RequestReadEncoder();
+							if (stallDetected && powerEnabled) {
+								Logger.Debug("Encoder read, stall detected, take action");
+								PowerEnable(false);
+								StopMotor();
+							}
 						}
 					}
 				}

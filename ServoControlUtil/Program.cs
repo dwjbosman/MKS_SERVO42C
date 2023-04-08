@@ -81,7 +81,7 @@ namespace ServoControlUtil {
 				}
 				if (o.Command == "Protect") {
 					Console.WriteLine("Enabling stall protection");
-					if (c.StallProtectEnable(true)) {
+					if (c.HWStallProtectEnable(true)) {
 						Console.WriteLine("Protection enabled");
 						return 0;
 					} else {
@@ -92,7 +92,7 @@ namespace ServoControlUtil {
 
 				if (o.Command == "Unprotect") {
 					Console.WriteLine("Disabling stall protection");
-					if (c.StallProtectEnable(false)) {
+					if (c.HWStallProtectEnable(false)) {
 						Console.WriteLine("Protection disabled");
 						return 0;
 					} else {
@@ -103,7 +103,7 @@ namespace ServoControlUtil {
 
 				if (o.Command == "Release") {
 					Console.WriteLine("Release stall protection");
-					if (c.StallProtectEnable(false)) {
+					if (c.HWStallProtectEnable(false)) {
 						Console.WriteLine("Released stall protection");
 						return 0;
 					} else {
