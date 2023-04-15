@@ -4,9 +4,9 @@ using Avalonia.Markup.Xaml;
 
 namespace Vice.Views;
 
-public partial class TestView : UserControl
+public partial class ViceControlView : UserControl
 {
-    public TestView()
+    public ViceControlView()
     {
         InitializeComponent();
     }

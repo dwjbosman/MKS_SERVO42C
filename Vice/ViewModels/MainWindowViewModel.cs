@@ -3,12 +3,11 @@ namespace Vice.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
-    public string Greeting => "Welcome to Avalonia!";
     ViewModelBase content;    
 
 
     public MainWindowViewModel() {
-    	content = new TestViewModel();
+    	content = new ViceControlViewModel();
     }
 
     public ViewModelBase Content {
