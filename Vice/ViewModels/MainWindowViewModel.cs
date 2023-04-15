@@ -8,13 +8,11 @@ public class MainWindowViewModel : ViewModelBase
 
 
     public MainWindowViewModel() {
-    	Content = Player = new TestViewModel();
+    	content = new TestViewModel();
     }
 
     public ViewModelBase Content {
         get => content;
         private set => this.RaiseAndSetIfChanged(ref content, value);
     }
-
-    public TestViewModel Player { get; }
 }
