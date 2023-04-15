@@ -1,4 +1,5 @@
 ﻿using ReactiveUI;
+using Vice.Models;
 namespace Vice.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
@@ -6,8 +7,8 @@ public class MainWindowViewModel : ViewModelBase
     ViewModelBase content;    
 
 
-    public MainWindowViewModel() {
-    	content = new ViceControlViewModel();
+    public MainWindowViewModel(ViceControl model) {
+    	content = new ViceControlViewModel(model);
     }
 
     public ViewModelBase Content {
