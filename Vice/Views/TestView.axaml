@@ -1,0 +1,71 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Vice.Views.TestView">
+    <UserControl.Resources>
+      <Flyout Placement="Right" x:Key="NumericKeyboard">
+                  <Panel Width="200" Height="300">
+                    <Grid ColumnDefinitions="60,60,60" RowDefinitions="60,60,60,60,60">
+                       <TextBlock TextWrapping="Wrap" Text="cm" Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                       <TextBox Grid.Column="1" Grid.Row="0" Grid.ColumnSpan="2"/>
+                       <Button Content="7" Grid.Row="1" Grid.Column="0" Classes="mainbutton"/>
+                       <Button Content="8" Grid.Row="1" Grid.Column="1" Classes="mainbutton"/>
+                       <Button Content="9" Grid.Row="1" Grid.Column="2" Classes="mainbutton"/>
+                       <Button Content="4" Grid.Row="2" Grid.Column="0" Classes="mainbutton"/>
+                       <Button Content="5" Grid.Row="2" Grid.Column="1" Classes="mainbutton"/>
+                       <Button Content="6" Grid.Row="2" Grid.Column="2" Classes="mainbutton"/>
+                       <Button Content="1" Grid.Row="3" Grid.Column="0" Classes="mainbutton"/>
+                       <Button Content="2" Grid.Row="3" Grid.Column="1" Classes="mainbutton"/>
+                       <Button Content="3" Grid.Row="3" Grid.Column="2" Classes="mainbutton"/>
+                       <Button Content="Ok" Grid.Row="4" Grid.Column="0" Classes="mainbutton"/>
+                       <Button Content="Cancel" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" Classes="mainbutton"/>
+                    </Grid>
+                  </Panel>
+      </Flyout>
+    </UserControl.Resources>
+    <UserControl.Styles>
+        <Style Selector="Button.mainbutton">
+       	<Setter Property="HorizontalAlignment" Value="Stretch"/>
+       	<Setter Property="VerticalAlignment" Value="Stretch"/>
+       	<Setter Property="HorizontalContentAlignment" Value="Center"/>
+       	<Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Styles>      
+
+<Grid ColumnDefinitions="1*,1*,1*,1*" Margin="4">
+<Grid.RowDefinitions>
+   <RowDefinition Height="70"></RowDefinition>
+   <RowDefinition Height="*"></RowDefinition>
+   <RowDefinition Height="70"></RowDefinition>
+</Grid.RowDefinitions>
+  <Button Content="Home"  Grid.Row="0" Grid.Column="0" Classes="mainbutton"/>
+  <Button Content="Calibrate" Grid.Row="0" Grid.Column="1" Classes="mainbutton"/>
+  <Button Content="Open" Grid.Row="0" Grid.Column="2" Classes="mainbutton"/>
+  <Button Content="Close" Grid.Row="0" Grid.Column="3" Classes="mainbutton"/>
+  
+          <Slider 
+                Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+                Value="0"
+                Minimum="0"
+                Maximum="100"
+                TickFrequency="10"
+                IsHitTestVisible="false"
+                VerticalAlignment="Center"
+                Margin="20,0,20,0" />
+  <TextBlock Text="Position:" Grid.Row="1" Grid.Column="4" VerticalAlignment="Center" Margin="5,0,0,0"/>
+  <TextBlock Text="0.01" Grid.Row="1" Grid.Column="4" VerticalAlignment="Center" Margin="65,0,0,0"/>
+
+  <Button Content="Goto"  Grid.Row="2" Grid.Column="0" Classes="mainbutton">
+ 			<Button.Flyout>
+				<StaticResource ResourceKey="NumericKeyboard"/>
+			</Button.Flyout> 
+  </Button>
+  <Button Content="Delay" Grid.Row="2" Grid.Column="1" Classes="mainbutton"/>
+  <Button Content="On" Grid.Row="2" Grid.Column="2" Classes="mainbutton"/>
+  <Button Content="Off" Grid.Row="2" Grid.Column="3" Classes="mainbutton"/>
+
+
+</Grid>
+</UserControl>

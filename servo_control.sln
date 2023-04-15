@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServoControl", "ServoContro
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServoControlUtil", "ServoControlUtil\ServoControlUtil.csproj", "{838A4FC7-801A-4C7D-A43B-8350475A5208}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vice", "Vice\Vice.csproj", "{67FCDD8F-DED8-416B-BC62-5410FF2F559E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{838A4FC7-801A-4C7D-A43B-8350475A5208}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{838A4FC7-801A-4C7D-A43B-8350475A5208}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{838A4FC7-801A-4C7D-A43B-8350475A5208}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67FCDD8F-DED8-416B-BC62-5410FF2F559E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67FCDD8F-DED8-416B-BC62-5410FF2F559E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67FCDD8F-DED8-416B-BC62-5410FF2F559E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67FCDD8F-DED8-416B-BC62-5410FF2F559E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
