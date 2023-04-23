@@ -9,5 +9,6 @@
 
     <Application.Styles>
         <FluentTheme Mode="Light"/>
+        <StyleInclude Source="/Controls/ExampleControl.axaml"></StyleInclude>
     </Application.Styles>
 </Application>
