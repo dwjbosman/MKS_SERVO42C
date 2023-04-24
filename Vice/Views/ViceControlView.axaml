@@ -37,17 +37,20 @@
 
 <Grid ColumnDefinitions="1*,1*,1*,1*" Margin="4">
 <Grid.RowDefinitions>
+   <RowDefinition Height="40"></RowDefinition>
    <RowDefinition Height="70"></RowDefinition>
    <RowDefinition Height="*"></RowDefinition>
    <RowDefinition Height="70"></RowDefinition>
 </Grid.RowDefinitions>
-  <Button Content="Home"  Grid.Row="0" Grid.Column="0" Classes="mainbutton"/>
-  <Button Content="Calibrate" Grid.Row="0" Grid.Column="1" Classes="mainbutton"/>
-  <Button Content="Open" Grid.Row="0" Grid.Column="2" Classes="mainbutton"/>
-  <Button Content="Close" Grid.Row="0" Grid.Column="3" Classes="mainbutton"/>
+  <TextBlock Text="{Binding MainViewModel.Clock.CurrentTime}" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,0,0,0"/>
+
+  <Button Content="Home"  Grid.Row="1" Grid.Column="0" Classes="mainbutton"/>
+  <Button Content="Calibrate" Grid.Row="1" Grid.Column="1" Classes="mainbutton"/>
+  <Button Content="Open" Grid.Row="1" Grid.Column="2" Classes="mainbutton"/>
+  <Button Content="Close" Grid.Row="1" Grid.Column="3" Classes="mainbutton"/>
   
           <Slider 
-                Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+                Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
                 Value="{Binding Control.Position}"
                 Minimum="0"
                 Maximum="100"
@@ -55,17 +58,17 @@
                 IsHitTestVisible="false"
                 VerticalAlignment="Center"
                 Margin="20,0,20,0" />
-  <TextBlock Text="Position:" Grid.Row="1" Grid.Column="4" VerticalAlignment="Center" Margin="5,0,0,0"/>
-  <TextBlock Text="0.01" Grid.Row="1" Grid.Column="4" VerticalAlignment="Center" Margin="65,0,0,0"/>
+  <TextBlock Text="Position:" Grid.Row="2" Grid.Column="4" VerticalAlignment="Center" Margin="5,0,0,0"/>
+  <TextBlock Text="0.01" Grid.Row="2" Grid.Column="4" VerticalAlignment="Center" Margin="65,0,0,0"/>
 
-  <Button Content="Goto"  Grid.Row="2" Grid.Column="0" Classes="mainbutton">
+  <Button Content="Goto"  Grid.Row="3" Grid.Column="0" Classes="mainbutton">
  			<Button.Flyout>
 				<StaticResource ResourceKey="NumericKeyboard"/>
 			</Button.Flyout> 
   </Button>
-  <Button Content="Delay" Grid.Row="2" Grid.Column="1" Classes="mainbutton"/>
-  <Button Content="On" Grid.Row="2" Grid.Column="2" Classes="mainbutton"/>
-  <Button Content="Off" Grid.Row="2" Grid.Column="3" Classes="mainbutton" Command="{Binding MainViewModel.ShowAbout}"/>
+  <Button Content="Delay" Grid.Row="3" Grid.Column="1" Classes="mainbutton"/>
+  <Button Content="On" Grid.Row="3" Grid.Column="2" Classes="mainbutton"/>
+  <Button Content="Off" Grid.Row="3" Grid.Column="3" Classes="mainbutton" Command="{Binding MainViewModel.ShowAbout}"/>
   <!-- <controls:ExampleControl Grid.Row="2" Grid.Column="3"></controls:ExampleControl> -->
 
 </Grid>

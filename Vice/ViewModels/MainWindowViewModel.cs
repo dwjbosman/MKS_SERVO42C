@@ -8,15 +8,21 @@ public class MainWindowViewModel : ViewModelBase
 
     ViceControlViewModel viceControlViewModel;
     AboutViewModel aboutViewModel;
+    Clock clock;
 
     public MainWindowViewModel(ViceControl model) {
     	content = viceControlViewModel = new ViceControlViewModel(this, model);
         aboutViewModel = new AboutViewModel(this);
+        clock = new Clock();
     }
 
     public ViewModelBase Content {
         get => content;
         private set => this.RaiseAndSetIfChanged(ref content, value);
+    }
+
+    public Clock Clock {
+        get => clock;
     }
 
     public void ShowViceControl() { 
