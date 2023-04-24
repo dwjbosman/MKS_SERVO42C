@@ -5,9 +5,13 @@ using ReactiveUI;
 
     public class ViceControlViewModel : ViewModelBase
     {
-        public ViceControl Control { get; set; }
-        public ViceControlViewModel(ViceControl control) {
+        public ViceControl Control { get; private set; }
+
+        public MainWindowViewModel MainViewModel { get; private set; }
+
+        public ViceControlViewModel(MainWindowViewModel main, ViceControl control) {
                 Control = control;
+                MainViewModel = main;
                 gotoValue = "Test";
         }
 
@@ -17,6 +21,8 @@ using ReactiveUI;
             get => gotoValue;
             set => this.RaiseAndSetIfChanged(ref gotoValue, value);
         }
+
+        
 
         public void UpdateGotoValue()
         {

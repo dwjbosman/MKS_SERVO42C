@@ -13,3 +13,9 @@ Observations:
 2. With mstep=256 and speed=10 the encoder changes by about 7000 per second.
 3. With mstep=256 a revolution seems to equal 52000 pulses.
 
+# Avalonia
+
+Usefull links:
+https://www.nequalsonelifestyle.com/2019/06/08/avalonia-buttons-multiple-ways/
+https://www.youtube.com/watch?v=XmYKOoGlZWo&t=155s
+

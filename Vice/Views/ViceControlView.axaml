@@ -65,7 +65,7 @@
   </Button>
   <Button Content="Delay" Grid.Row="2" Grid.Column="1" Classes="mainbutton"/>
   <Button Content="On" Grid.Row="2" Grid.Column="2" Classes="mainbutton"/>
-  <Button Content="Off" Grid.Row="2" Grid.Column="3" Classes="mainbutton"/>
+  <Button Content="Off" Grid.Row="2" Grid.Column="3" Classes="mainbutton" Command="{Binding MainViewModel.ShowAbout}"/>
   <!-- <controls:ExampleControl Grid.Row="2" Grid.Column="3"></controls:ExampleControl> -->
 
 </Grid>

@@ -1,0 +1,39 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:Vice"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Vice.Views.AboutView">
+  <StackPanel>
+    <TextBlock Classes="h2">A control that can display text</TextBlock>
+    <WrapPanel MaxWidth="680"
+               Margin="-10,0"
+               HorizontalAlignment="Center">
+      <WrapPanel.Styles>
+        <Style Selector="Border">
+          <Setter Property="BorderThickness" Value="1" />
+          <Setter Property="BorderBrush" Value="{DynamicResource SystemControlHighlightBaseMediumLowBrush}" />
+          <Setter Property="Padding" Value="2" />
+          <Setter Property="Margin" Value="10" />
+          <Setter Property="Width" Value="200" />
+        </Style>
+      </WrapPanel.Styles>
+      <Border>
+        <StackPanel Spacing="8">
+          <TextBlock Margin="0,0,10,0"
+                     Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+                     TextTrimming="CharacterEllipsis" />
+          <TextBlock Margin="0,0,10,0"
+                     Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+                     TextTrimming="WordEllipsis" />
+          <TextBlock Text="Left aligned text" TextAlignment="Left" />
+          <TextBlock Text="Center aligned text" TextAlignment="Center" />
+          <TextBlock Text="Right aligned text" TextAlignment="Right" />
+        </StackPanel>
+      </Border>
+      <Button Content="Close" Command="{Binding MainViewModel.ShowViceControl}"/>
+
+    </WrapPanel>
+  </StackPanel>
+</UserControl>
