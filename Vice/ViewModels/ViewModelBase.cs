@@ -1,4 +1,5 @@
-﻿using ReactiveUI;
+﻿using System.Reactive.Linq;
+using ReactiveUI;
 
 namespace Vice.ViewModels;
 
