@@ -19,16 +19,13 @@ public partial class App : Application
         ViceControl control = new ViceControl();
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow
-            {
-                DataContext = new MainWindowViewModel(control),
-            };
+            desktop.MainWindow = new MainWindow();
+            desktop.MainWindow.DataContext = new MainWindowViewModel(control,desktop.MainWindow);
+            
         }
         else if (ApplicationLifetime is ISingleViewApplicationLifetime singleView) {
-            singleView.MainView = new MainSingleView 
-	    {
-                DataContext = new MainWindowViewModel(control),
-	    };
+            singleView.MainView = new MainSingleView();
+            singleView.MainView.DataContext = new MainWindowViewModel(control,singleView.MainView);
 	}
 
 

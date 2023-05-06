@@ -2,9 +2,15 @@
 using System;
 using System.Collections.Generic;
 using Vice.Models;
+using Vice.Views;
 using ReactiveUI;
 using System.Reactive.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia;
+using Avalonia.Controls;
+using System.Windows.Input;
 
     public class ViceControlViewModel : ViewModelBase
     {
@@ -23,7 +29,7 @@ using System.Threading;
             var obsThrottled = obs.Throttle(TimeSpan.FromSeconds(2));
             **/
             
-            
+
             this.WhenAnyValue(x => x.Control.Position)
             .Sample(TimeSpan.FromSeconds(1))
             .ObserveOn( RxApp.MainThreadScheduler )
@@ -60,5 +66,19 @@ using System.Threading;
             Control.Position = 10;
         }
 
+
+        private ICommand? requestCloseDialogCommand = null;
+        public ICommand? RequestCloseDialogCommand { 
+                get => requestCloseDialogCommand; 
+                set {
+                        this.RaiseAndSetIfChanged(ref requestCloseDialogCommand, value);
+                } 
+        }
+
+        public void CloseDialog() {
+            if (RequestCloseDialogCommand != null) {
+                RequestCloseDialogCommand.Execute(null);
+            }
+        }
 
     }

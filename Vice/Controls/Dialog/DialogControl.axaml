@@ -1,0 +1,31 @@
+<Styles xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Vice">
+    <Style Selector="controls|DialogControl">
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="BorderBrush" Value="Black" />
+        <Setter Property="Content" Value="" />
+        <Setter Property="Overlay" Value="" />
+        <Setter Property="Result"/> 
+        <Setter Property="Closed"/>
+        
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border>
+                    <Panel>
+                        <UserControl Content="{TemplateBinding Content}" VerticalAlignment="Top"/>
+                        <Rectangle Fill="Green" Height="100" VerticalAlignment="Bottom"/>
+
+                    </Panel>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="controls|DialogControl > Border">
+          <Setter Property="ZIndex" Value="-1" />
+          <Setter Property="BorderThickness" Value="5" />
+          <Setter Property="Background" Value="{TemplateBinding Background}" />
+          <Setter Property="BorderBrush" Value="{TemplateBinding BorderBrush}" />
+    </Style>
+
+</Styles>

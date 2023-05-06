@@ -15,7 +15,7 @@ class Program
     [STAThread]
     public static int Main(string[] args)
     {
-	Console.WriteLine("Starting");
+	    Console.WriteLine("Starting");
 
     	var builder = BuildAvaloniaApp();
         if (((IList)args).Contains("--drm"))

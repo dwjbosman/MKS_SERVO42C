@@ -9,6 +9,7 @@
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
         Title="Vice"
+        x:Name="Blaat"
 	Content="{Binding Content}"
 	>
 </Window>

@@ -10,5 +10,6 @@
     <Application.Styles>
         <FluentTheme Mode="Light"/>
         <StyleInclude Source="/Controls/ExampleControl.axaml"></StyleInclude>
+        <StyleInclude Source="/Controls/Dialog/DialogControl.axaml"></StyleInclude>
     </Application.Styles>
 </Application>
