@@ -14,16 +14,25 @@
                 <Border>
                     <Panel>
                         <UserControl Content="{TemplateBinding Content}" VerticalAlignment="Top"/>
-                        <Rectangle Fill="Green" Height="100" VerticalAlignment="Bottom"/>
+                        
+                        <Grid HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="100">
+  <StackPanel HorizontalAlignment="Center" Orientation="Horizontal"  Name="DialogButtons" >
+    <!-- elements go here -->
+  </StackPanel>
+</Grid>
+
+                      <!--  <StackPanel Spacing="5" Orientation="Horizontal" Name="DialogButtons" Height="100" VerticalAlignment="Bottom"/> -->
 
                     </Panel>
                 </Border>
             </ControlTemplate>
         </Setter>
     </Style>
+    <Style Selector="controls|DialogControl">
+          <Setter Property="ZIndex" Value="-100" />
+    </Style>
     <Style Selector="controls|DialogControl > Border">
-          <Setter Property="ZIndex" Value="-1" />
-          <Setter Property="BorderThickness" Value="5" />
+          <Setter Property="BorderThickness" Value="15" />
           <Setter Property="Background" Value="{TemplateBinding Background}" />
           <Setter Property="BorderBrush" Value="{TemplateBinding BorderBrush}" />
     </Style>

@@ -10,7 +10,6 @@
              Width="320"
              Name="AboutViewUserControl"
              Height="320"
-             Result="{Binding Result}"
              >
 
   <StackPanel>

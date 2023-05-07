@@ -52,6 +52,7 @@ public class MainWindowViewModel : ViewModelBase
 
     public void ShowAbout() {
         DialogContent = null;
+        //aboutViewModel.Result = null;
         DialogContent = aboutViewModel;
     }
     public void DialogClosed(object? result) {
