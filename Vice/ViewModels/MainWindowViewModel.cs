@@ -12,7 +12,9 @@ public class MainWindowViewModel : ViewModelBase
     ViewModelBase? dialogContent;
 
     ViceControlViewModel viceControlViewModel;
-    AboutViewModel aboutViewModel;
+    AboutViewModel _aboutViewModel;
+    CalibrateViewModel _calibrateViewModel;
+    
     Clock clock;
 
     Control mainView;
@@ -20,7 +22,8 @@ public class MainWindowViewModel : ViewModelBase
     public MainWindowViewModel(ViceControl model, Control view) {
     	content = viceControlViewModel = new ViceControlViewModel(this, model);
         dialogContent = null;
-        aboutViewModel = new AboutViewModel(this);
+        _aboutViewModel = new AboutViewModel(this);
+        _calibrateViewModel = new CalibrateViewModel(this);
         clock = new Clock();
         mainView = view;
     }
@@ -52,12 +55,18 @@ public class MainWindowViewModel : ViewModelBase
 
     public void ShowAbout() {
         DialogContent = null;
-        aboutViewModel.Result = null;
-        DialogContent = aboutViewModel;
+        _aboutViewModel.Result = null;
+        DialogContent = _aboutViewModel;
     }
     public void DialogClosed(object? result) {
         //DialogContent = null;     
     }
 
+    public void ShowCalibrationDialog() {
+        DialogContent = null;
+        _calibrateViewModel.Result = null;
+        DialogContent = _calibrateViewModel;
+
+    }
 
 }

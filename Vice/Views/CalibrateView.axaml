@@ -1,0 +1,48 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:Vice.Views"
+             xmlns:controls="clr-namespace:Vice"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Vice.Views.CalibrateView"
+             MaxWidth="320" MaxHeight="320"
+             Width="320"
+             Name="CalibrateViewUserControl"
+             Height="320"
+             >
+
+  <StackPanel>
+    <TextBlock Classes="h2">Calibration</TextBlock>
+    <WrapPanel 
+               Margin="-10,0"
+               HorizontalAlignment="Center">
+      <WrapPanel.Styles>
+        <Style Selector="Border">
+          <Setter Property="BorderThickness" Value="1" />
+          <Setter Property="BorderBrush" Value="{DynamicResource SystemControlHighlightBaseMediumLowBrush}" />
+          <Setter Property="Padding" Value="2" />
+          <Setter Property="Margin" Value="10" />
+          <Setter Property="Width" Value="200" />
+        </Style>
+      </WrapPanel.Styles>
+      <Border>
+        <StackPanel Spacing="8">
+          <TextBlock Margin="0,0,10,0"
+                     Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+                     TextTrimming="CharacterEllipsis" />
+          <TextBlock Margin="0,0,10,0"
+                     Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+                     TextTrimming="WordEllipsis" />
+          <TextBlock Text="Left aligned text" TextAlignment="Left" />
+          <TextBlock Text="Center aligned text" TextAlignment="Center" />
+          <TextBlock Text="Right aligned text" TextAlignment="Right" />
+        </StackPanel>
+      </Border>
+      <Button Content="Close" Command="{Binding CloseDialog}"/>
+
+
+
+    </WrapPanel>
+  </StackPanel>
+</UserControl>

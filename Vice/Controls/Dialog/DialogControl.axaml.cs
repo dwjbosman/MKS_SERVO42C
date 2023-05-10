@@ -20,6 +20,7 @@ namespace Vice;
 
 public class DialogControl : TemplatedControl
 {
+    private INameScope _nameScope;
 
     public DialogControl()
     {
@@ -38,7 +39,9 @@ public class DialogControl : TemplatedControl
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e) {
         base.OnApplyTemplate(e);
 
-        
+        _nameScope = e.NameScope;
+            
+        /**
         StackPanel buttons = e.NameScope.Find<StackPanel>("DialogButtons");
 
         Button b1 = new Button();
@@ -50,7 +53,13 @@ public class DialogControl : TemplatedControl
 
         buttons.Children.Add(b1);
         buttons.Children.Add(b2);
+        **/
+    }
 
+    public void addResultButton(Button b) {
+        StackPanel buttons = _nameScope.Find<StackPanel>("DialogButtons");
+        b.HorizontalAlignment=Avalonia.Layout.HorizontalAlignment.Center;
+        buttons.Children.Add(b);
     }
 
    public static readonly StyledProperty<object?> ContentProperty =
@@ -72,6 +81,9 @@ public class DialogControl : TemplatedControl
             BindingValue<object?> nv = e.NewValue;
             if (nv.Value !=null) {
                     ShowOverlay();
+                    StackPanel buttons = _nameScope.Find<StackPanel>("DialogButtons");
+                    buttons.Children.Clear();
+
                     ZIndex = 1001;
                     Result = null;
             } else {

@@ -81,4 +81,8 @@ using System.Windows.Input;
             }
         }
 
+        public void StartCalibration() {
+            this.MainViewModel.ShowCalibrationDialog();
+        }
+
     }

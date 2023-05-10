@@ -23,11 +23,11 @@ namespace Vice.Views;
 
 
 
-public partial class AboutView : AbstractDialogContentsView
+public partial class CalibrateView : AbstractDialogContentsView
 {
     private IDisposable? _bindingReferenceToResult = null;
 
-    public AboutView()
+    public CalibrateView()
     {
         InitializeComponent();
 
@@ -54,11 +54,11 @@ public partial class AboutView : AbstractDialogContentsView
 
         // You can also validate the data going into the DataContext using the event args
         DialogControl? dc = GetDialogControl();
-        AboutViewModel? vm = ((AboutViewModel?)this.DataContext);
+        CalibrateViewModel? vm = ((CalibrateViewModel?)this.DataContext);
         if ((vm != null) && (dc!=null)) {
 
             Button b1 = new Button();
-            b1.Content = "Close";
+            b1.Content = "Cancel";
             b1.Command =  ReactiveCommand.Create(() => { vm.CloseDialog(); });
 
             dc.addResultButton(b1);
