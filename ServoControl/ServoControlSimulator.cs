@@ -1,3 +1,5 @@
+using System.Threading;
+
 namespace ServoControl;
 public class ServoControllerSimulator : IServoController
 {
@@ -37,6 +39,17 @@ public class ServoControllerSimulator : IServoController
     bool IServoController.stallDetected { get => _stallDetected; }
 
     int IServoController.debug { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    public ServoControllerSimulator() {
+        Thread backgroundThread = new Thread(new ThreadStart(Simulate));
+        backgroundThread.Start();
+    }
+
+    private void Simulate() {
+        while (true) {
+            Thread.Sleep(1);
+        }
+    }
 
     void IServoController.Close()
     {
@@ -101,7 +114,15 @@ public class ServoControllerSimulator : IServoController
 
     bool IServoController.SetConstantSpeed(int speed, bool guard)
     {
-        throw new NotImplementedException();
+        this._constantSpeedGuard = guard;
+        this._constantSpeedEnabled = true;
+        this._speed = speed;
+        if (!_powerEnabled) {
+            return false;
+        } else {
+            return true;
+        }
+
     }
 
     bool IServoController.StopMotor()
