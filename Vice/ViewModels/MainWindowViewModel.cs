@@ -11,7 +11,8 @@ public class MainWindowViewModel : ViewModelBase
 
     ViewModelBase? dialogContent;
 
-    ViceControlViewModel viceControlViewModel;
+    public ViceControlViewModel ViceControlViewModel { get; private set; }
+
     AboutViewModel _aboutViewModel;
     CalibrateViewModel _calibrateViewModel;
     
@@ -20,7 +21,7 @@ public class MainWindowViewModel : ViewModelBase
     Control mainView;
 
     public MainWindowViewModel(ViceControl model, Control view) {
-    	content = viceControlViewModel = new ViceControlViewModel(this, model);
+    	content = ViceControlViewModel = new ViceControlViewModel(this, model);
         dialogContent = null;
         _aboutViewModel = new AboutViewModel(this);
         _calibrateViewModel = new CalibrateViewModel(this);

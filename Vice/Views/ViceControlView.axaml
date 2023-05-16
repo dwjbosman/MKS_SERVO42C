@@ -59,10 +59,11 @@
       <RowDefinition Height="70"></RowDefinition>
     </Grid.RowDefinitions>
     <TextBlock Text="{Binding MainViewModel.Clock.CurrentTime}" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,0,0,0"/>
+    <TextBlock Text="{Binding Control.Status}" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="4" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,0,0,0"/>
     <Button Content="About" Grid.Row="0" Grid.Column="3" HorizontalAlignment="Right" Command="{Binding MainViewModel.ShowAbout}"/>
 
     <Button Content="Home"  Grid.Row="1" Grid.Column="0" Classes="mainbutton"/>
-    <Button Content="Calibrate" Grid.Row="1" Grid.Column="1" Classes="mainbutton" Command="{Binding StartCalibration}"/>
+    <Button Content="Calibrate" Grid.Row="1" Grid.Column="1" Classes="mainbutton" Command="{Binding CalibrateCommand}"/>
     <Button Content="Open" Grid.Row="1" Grid.Column="2" Classes="mainbutton"/>
     <Button Content="Close" Grid.Row="1" Grid.Column="3" Classes="mainbutton"/>
     
@@ -84,8 +85,8 @@
         </Button.Flyout> 
     </Button>
     <Button Content="Delay" Grid.Row="3" Grid.Column="1" Classes="mainbutton"/>
-    <Button Content="On" Grid.Row="3" Grid.Column="2" Classes="mainbutton" Command="{Binding AboutCommand}"/>
-    <Button Content="Off" Grid.Row="3" Grid.Column="3" Classes="mainbutton"/>
+    <Button Content="On" Grid.Row="3" Grid.Column="2" Classes="mainbutton" Command="{Binding EnablePowerCommand}"/>
+    <Button Content="Off" Grid.Row="3" Grid.Column="3" Classes="mainbutton" Command="{Binding DisablePowerCommand}"/>
     <!-- <controls:ExampleControl Grid.Row="2" Grid.Column="3"></controls:ExampleControl> -->
 
 

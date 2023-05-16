@@ -4,7 +4,7 @@ using Vice.Models;
 using ReactiveUI;
 using System.Windows.Input;
 
-public class CalibrateViewModel : ViewModelBase {
+public class CalibrateViewModel : AbstractDialogViewModel {
         
         
         public MainWindowViewModel MainViewModel { get; set; }
@@ -13,19 +13,15 @@ public class CalibrateViewModel : ViewModelBase {
                 MainViewModel = main;
         }
 
-        private object? result = null;
-        public object? Result { 
-                get => result; 
-                set {
-                        this.RaiseAndSetIfChanged(ref result, value);
-                } 
-        }
 
         public void CloseDialog() {
             /** if (RequestCloseDialogCommand != null) {
                 RequestCloseDialogCommand.Execute(null);
             }**/
             Result = true;
+        }
 
+        public void Start() {
+                MainViewModel.ViceControlViewModel.Control.StartCalibration();
         }
 }

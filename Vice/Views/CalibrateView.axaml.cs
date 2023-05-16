@@ -25,7 +25,6 @@ namespace Vice.Views;
 
 public partial class CalibrateView : AbstractDialogContentsView
 {
-    private IDisposable? _bindingReferenceToResult = null;
 
     public CalibrateView()
     {
@@ -41,40 +40,27 @@ public partial class CalibrateView : AbstractDialogContentsView
 
     }
     
-    protected override void OnDetachedFromLogicalTree(Avalonia.LogicalTree.LogicalTreeAttachmentEventArgs e) {
-        base.OnDetachedFromLogicalTree(e);
-        if (_bindingReferenceToResult!=null) {
-            _bindingReferenceToResult.Dispose();
-        }
-    }
+
 
     protected override void OnAttachedToLogicalTree(Avalonia.LogicalTree.LogicalTreeAttachmentEventArgs e)
     {
         base.OnAttachedToLogicalTree(e);
 
-        // You can also validate the data going into the DataContext using the event args
         DialogControl? dc = GetDialogControl();
         CalibrateViewModel? vm = ((CalibrateViewModel?)this.DataContext);
         if ((vm != null) && (dc!=null)) {
+
+            Button b0 = new Button();
+            b0.Content = "Start";
+            b0.Command =  ReactiveCommand.Create(() => { vm.Start(); });
+
+            dc.addResultButton(b0);
 
             Button b1 = new Button();
             b1.Content = "Cancel";
             b1.Command =  ReactiveCommand.Create(() => { vm.CloseDialog(); });
 
             dc.addResultButton(b1);
-
-            var binding = new Binding 
-            { 
-                Source = vm, 
-                Path = nameof(vm.Result),
-                Mode = BindingMode.TwoWay
-            }; 
-            
-            if (_bindingReferenceToResult!=null) {
-                _bindingReferenceToResult.Dispose();
-            }
-
-            _bindingReferenceToResult = dc.Bind(DialogControl.ResultProperty, binding);
             
         }
 

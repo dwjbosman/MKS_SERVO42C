@@ -26,7 +26,11 @@ namespace Vice.Models
             set => this.RaiseAndSetIfChanged(ref _powerEnable, value);
         }
 
-        public string Status { get; set; }
+        private string _status = "";
+        public string Status { 
+            get => _status; 
+            set => this.RaiseAndSetIfChanged(ref _status, value);
+        }
 
         private readonly ObservableAsPropertyHelper<bool> _powerEnabled;
         public bool PowerEnabled => _powerEnabled.Value;
@@ -48,16 +52,22 @@ namespace Vice.Models
                     servoController.PowerEnable(powerEnableValue); 
                     bool nw = false; 
                     servoController.GetPowerEnable(out nw);
+
+                    if (!nw) {
+                        Status = "Powered off";
+                    } else {
+                        Status = "Idle";
+                    }
+
                     return nw;
     }
 
  
 
 
-        public void startCalibrate() {
+        public void StartCalibration() {
             Status = "Calibrating";
             
-            servoController.PowerEnable(true);
 
         }
 

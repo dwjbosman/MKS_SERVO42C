@@ -4,21 +4,13 @@ using Vice.Models;
 using ReactiveUI;
 using System.Windows.Input;
 
-public class AboutViewModel : ViewModelBase {
+public class AboutViewModel : AbstractDialogViewModel {
         
         
         public MainWindowViewModel MainViewModel { get; set; }
 
         public AboutViewModel(MainWindowViewModel main) {
                 MainViewModel = main;
-        }
-
-        private object? result = null;
-        public object? Result { 
-                get => result; 
-                set {
-                        this.RaiseAndSetIfChanged(ref result, value);
-                } 
         }
 
         public void CloseDialog() {
