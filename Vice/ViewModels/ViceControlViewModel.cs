@@ -31,6 +31,10 @@ using System.Reactive.Threading.Tasks;
         public ReactiveCommand<Unit, Unit> DisablePowerCommand { get; }
         public ReactiveCommand<Unit, Unit> CalibrateCommand { get; }
 
+
+        private readonly ObservableAsPropertyHelper<string> _stallDetectedMessage;
+        public string StallDetectedMessage => _stallDetectedMessage.Value;
+
         public ViceControlViewModel(MainWindowViewModel main, ViceControl control) {
             Control = control;
             MainViewModel = main;
@@ -50,8 +54,18 @@ using System.Reactive.Threading.Tasks;
                 Position = value;
             });
 
+            _stallDetectedMessage = this.WhenAnyValue(x => x.Control.StallDetected)
+            .Select(stalled => { 
+                if (stalled) {
+                    return "Found";
+                } else {
+                    return "-";
+                }
+            })
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .ToProperty(this, x => x.StallDetectedMessage);
 
-            IObservable<bool> ce = this.WhenAnyValue(x => x.Control.PowerEnabled).Select(x => Debug("disbable",x));
+            IObservable<bool> ce = this.WhenAnyValue(x => x.Control.PowerEnabled).Select(x => Debug("disable",x));
 
             EnablePowerCommand = ReactiveCommand.Create(
                 EnablePower, 

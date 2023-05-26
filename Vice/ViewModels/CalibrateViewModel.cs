@@ -8,9 +8,14 @@ public class CalibrateViewModel : AbstractDialogViewModel {
         
         
         public MainWindowViewModel MainViewModel { get; set; }
+        public ViceControl Control { get; set; }
+        public ViceControlViewModel ControlViewModel { get; set; }
+        
 
         public CalibrateViewModel(MainWindowViewModel main) {
                 MainViewModel = main;
+                ControlViewModel = MainViewModel.ViceControlViewModel; 
+                Control = MainViewModel.ViceControlViewModel.Control;
         }
 
 
@@ -22,6 +27,6 @@ public class CalibrateViewModel : AbstractDialogViewModel {
         }
 
         public void Start() {
-                MainViewModel.ViceControlViewModel.Control.StartCalibration();
+                Control.StartCalibration();
         }
 }

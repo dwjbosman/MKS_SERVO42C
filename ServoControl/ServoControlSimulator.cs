@@ -5,14 +5,15 @@ public class ServoControllerSimulator : IServoController
 {
     private bool _powerEnabled = false;
     private float _speed = 0;
-    private int _absEncoderPosition = 500;
-    private int _reportedEncoderPositionDelta = -500;
-    private int _maxAbsEncoderPosition = 1000;
+    private float _absEncoderPosition = 12500;
+    private int _reportedEncoderPositionDelta = -12500;
+    private int _maxAbsEncoderPosition = 70000;
     private int _minAbsEncoderPosition = 0;
 
     private bool _stallDetected = false;
     private bool _constantSpeedGuard = false;
     private bool _constantSpeedEnabled = false;
+    
 
     byte IServoController.clientAddress { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
@@ -20,23 +21,23 @@ public class ServoControllerSimulator : IServoController
 
     int IServoController.encoderRead => throw new NotImplementedException();
 
-    int IServoController.absEncoderPosition { get => _absEncoderPosition + _reportedEncoderPositionDelta; }
+    public int absEncoderPosition { get => (int)_absEncoderPosition + _reportedEncoderPositionDelta; }
 
     float IServoController.estimatedEncoderSpeed => throw new NotImplementedException();
 
-    int IServoController.encoderRequestInterval { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public int encoderRequestInterval { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
     float IServoController.angleError => throw new NotImplementedException();
 
     int IServoController.shaftStatus => throw new NotImplementedException();
 
-    bool IServoController.powerEnabled {get => _powerEnabled; }
+    public bool powerEnabled {get => _powerEnabled; }
 
-    bool IServoController.constantSpeedEnabled { get => _constantSpeedEnabled;}
+    public bool constantSpeedEnabled { get => _constantSpeedEnabled;}
 
-    bool IServoController.constantSpeedGuard { get => _constantSpeedGuard; }
+    public bool constantSpeedGuard { get => _constantSpeedGuard; }
 
-    bool IServoController.stallDetected { get => _stallDetected; }
+    public bool stallDetected { get => _stallDetected; }
 
     int IServoController.debug { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
@@ -46,8 +47,41 @@ public class ServoControllerSimulator : IServoController
     }
 
     private void Simulate() {
+        long prevTime = 0;
         while (true) {
-            Thread.Sleep(1);
+            long curTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+
+            if (_constantSpeedEnabled) {
+                // speed == 10 -> encoder changes 7000 /s -> 7 p / ms
+                if (prevTime!=0) {
+                    long dt = curTime - prevTime;
+                    _absEncoderPosition += (_speed/10.0f)*7.0f*dt;
+                    if (_absEncoderPosition > _maxAbsEncoderPosition) {
+                        _absEncoderPosition = _maxAbsEncoderPosition;
+                        if (_constantSpeedGuard) {
+                            _stallDetected = true;
+                        }
+                    }
+                    if (_absEncoderPosition < _minAbsEncoderPosition) {
+                        _absEncoderPosition = _minAbsEncoderPosition; 
+                        if (_constantSpeedGuard) {
+                            _stallDetected = true;
+                        }
+                    }
+                }
+                prevTime = curTime;
+                Thread.Sleep(1);
+            } else {
+                prevTime = curTime;
+                Thread.Sleep(1);
+            }
+
+            if (stallDetected && powerEnabled) {
+                StopMotor();
+                PowerEnable(false);
+
+            }
+
         }
     }
 
@@ -66,7 +100,7 @@ public class ServoControllerSimulator : IServoController
         throw new NotImplementedException();
     }
 
-    bool IServoController.GetPowerEnable(out bool ena)
+    public bool GetPowerEnable(out bool ena)
     {
         ena = _powerEnabled;
         return true;
@@ -92,7 +126,7 @@ public class ServoControllerSimulator : IServoController
         // noop
     }
 
-    bool IServoController.PowerEnable(bool ena)
+    public bool PowerEnable(bool ena)
     {
         _powerEnabled = ena;
         if (!ena) {
@@ -107,25 +141,26 @@ public class ServoControllerSimulator : IServoController
         throw new NotImplementedException();
     }
 
-    void IServoController.ReleaseSWProtection()
+    public void ReleaseSWProtection()
     {
         _stallDetected = false;
     }
 
-    bool IServoController.SetConstantSpeed(int speed, bool guard)
+    public bool SetConstantSpeed(int speed, bool guard)
     {
-        this._constantSpeedGuard = guard;
-        this._constantSpeedEnabled = true;
-        this._speed = speed;
         if (!_powerEnabled) {
             return false;
         } else {
+            this._constantSpeedGuard = guard;
+            this._constantSpeedEnabled = true;
+            //this._constantSpeedEnabledStartTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+            this._speed = speed;
             return true;
         }
 
     }
 
-    bool IServoController.StopMotor()
+    public bool StopMotor()
     {
         if (!_powerEnabled) {
             return false;
@@ -141,7 +176,7 @@ public class ServoControllerSimulator : IServoController
     }
 
     public void calibrateEncoderPosition(int EncoderPosition) {
-		int reportedPosition = _absEncoderPosition + _reportedEncoderPositionDelta;
+		int reportedPosition = (int)_absEncoderPosition + _reportedEncoderPositionDelta;
         int delta = EncoderPosition - reportedPosition;
         _reportedEncoderPositionDelta += delta;
 	}

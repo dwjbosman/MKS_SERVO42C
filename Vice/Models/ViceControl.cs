@@ -32,8 +32,19 @@ namespace Vice.Models
             set => this.RaiseAndSetIfChanged(ref _status, value);
         }
 
+        private bool _stallDetected = false;
+        
+        public bool StallDetected {
+            get => _stallDetected;
+            private set => this.RaiseAndSetIfChanged(ref _stallDetected, value);
+        }
+
         private readonly ObservableAsPropertyHelper<bool> _powerEnabled;
         public bool PowerEnabled => _powerEnabled.Value;
+
+
+
+        private IDisposable _controlUpdater;
 
         public ViceControl() {
             servoController = new ServoControllerSimulator();
@@ -44,6 +55,15 @@ namespace Vice.Models
             .Select(powerEnableValue => TrySetPowerEnable(powerEnableValue))
             .ObserveOn(RxApp.MainThreadScheduler)
             .ToProperty(this, x => x.PowerEnabled);
+
+            _controlUpdater = Observable.Interval(TimeSpan.FromSeconds(0.250))
+            .Subscribe(_ => {
+                Position = servoController.absEncoderPosition;
+                StallDetected = servoController.stallDetected;
+            });
+
+
+
 
         }
 
@@ -68,6 +88,7 @@ namespace Vice.Models
         public void StartCalibration() {
             Status = "Calibrating";
             
+            servoController.SetConstantSpeed(10, true);
 
         }
 
