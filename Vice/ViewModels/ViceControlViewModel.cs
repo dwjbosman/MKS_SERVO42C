@@ -35,6 +35,11 @@ using System.Reactive.Threading.Tasks;
         private readonly ObservableAsPropertyHelper<string> _stallDetectedMessage;
         public string StallDetectedMessage => _stallDetectedMessage.Value;
 
+
+        private readonly ObservableAsPropertyHelper<string> _statusMessage;
+        public string StatusMessage => _statusMessage.Value;
+
+
         public ViceControlViewModel(MainWindowViewModel main, ViceControl control) {
             Control = control;
             MainViewModel = main;
@@ -64,6 +69,12 @@ using System.Reactive.Threading.Tasks;
             })
             .ObserveOn(RxApp.MainThreadScheduler)
             .ToProperty(this, x => x.StallDetectedMessage);
+
+            _statusMessage = this.WhenAnyValue(x => x.Control.Status)
+            .Select(status => { return status.ToString("G");})
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .ToProperty(this, x => x.StatusMessage);
+
 
             IObservable<bool> ce = this.WhenAnyValue(x => x.Control.PowerEnabled).Select(x => Debug("disable",x));
 

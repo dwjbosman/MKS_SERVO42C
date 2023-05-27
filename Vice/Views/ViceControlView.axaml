@@ -59,7 +59,7 @@
       <RowDefinition Height="70"></RowDefinition>
     </Grid.RowDefinitions>
     <TextBlock Text="{Binding MainViewModel.Clock.CurrentTime}" Grid.Row="0" Grid.Column="0"  HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,0,0,0"/>
-    <TextBlock Text="{Binding Control.Status}" Grid.Row="0" Grid.Column="1"  HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,0,0,0"/>
+    <TextBlock Text="{Binding StatusMessage}" Grid.Row="0" Grid.Column="1"  HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,0,0,0"/>
     <Button Content="About" Grid.Row="0" Grid.Column="3" HorizontalAlignment="Right" Command="{Binding MainViewModel.ShowAbout}"/>
 
     <Button Content="Home"  Grid.Row="1" Grid.Column="0" Classes="mainbutton"/>

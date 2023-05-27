@@ -7,11 +7,26 @@ using System;
 
 namespace Vice.Models
 {
+
+    public enum ViceStatus {
+        Off,
+        Uncalibrated, // holding torque enabled
+        Calibrating,
+        Holding,
+        Free,
+        Moving
+    }
+
     public class ViceControl : ReactiveObject
     {
         private IServoController servoController;
         
         private bool _isCalibrated = false;
+        public bool Calibrated {
+            get => _isCalibrated;
+            private set => this.RaiseAndSetIfChanged(ref _isCalibrated, value);
+        }
+
         private int _position = 0;
         
         public int Position {
@@ -26,8 +41,8 @@ namespace Vice.Models
             set => this.RaiseAndSetIfChanged(ref _powerEnable, value);
         }
 
-        private string _status = "";
-        public string Status { 
+        private ViceStatus _status = ViceStatus.Off;
+        public ViceStatus Status { 
             get => _status; 
             set => this.RaiseAndSetIfChanged(ref _status, value);
         }
@@ -49,7 +64,7 @@ namespace Vice.Models
         public ViceControl() {
             servoController = new ServoControllerSimulator();
             Position = 30;
-            Status = "Idle";
+            Status = ViceStatus.Off;
 
             _powerEnabled = this.WhenAnyValue(x => x.PowerEnable)
             .Select(powerEnableValue => TrySetPowerEnable(powerEnableValue))
@@ -74,9 +89,18 @@ namespace Vice.Models
                     servoController.GetPowerEnable(out nw);
 
                     if (!nw) {
-                        Status = "Powered off";
+                        if (Calibrated) {
+                            Status = ViceStatus.Free;
+                        } else {
+                            Status  = ViceStatus.Off;
+                        }
+                        
                     } else {
-                        Status = "Idle";
+                        if (Calibrated) {
+                            Status = ViceStatus.Holding;
+                        } else {
+                            Status = ViceStatus.Uncalibrated;
+                        }
                     }
 
                     return nw;
@@ -86,13 +110,25 @@ namespace Vice.Models
 
 
         public void StartCalibration() {
-            Status = "Calibrating";
-            
-            servoController.SetConstantSpeed(10, true);
+            if ((Status==ViceStatus.Uncalibrated)  || (Status==ViceStatus.Holding)) {
 
+                Status = ViceStatus.Calibrating;
+                servoController.SetConstantSpeed(10, true);
+            }
         }
 
-        
+        public void Stop() {
+            servoController.StopMotor();
+            if (Status==ViceStatus.Calibrating)  {
+                if (Calibrated) {
+                    Status = ViceStatus.Holding;
+                } else {
+                    Status = ViceStatus.Uncalibrated;
+                }
+            } else if (Status == ViceStatus.Moving) {
+                Status = ViceStatus.Holding;
+            }       
+        }
 
     }
 }

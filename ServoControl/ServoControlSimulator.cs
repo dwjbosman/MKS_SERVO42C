@@ -166,6 +166,7 @@ public class ServoControllerSimulator : IServoController
             return false;
         } else {
             _speed = 0;
+            this._constantSpeedEnabled = false;
             return true;
         }
     }

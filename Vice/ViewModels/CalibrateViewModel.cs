@@ -29,4 +29,17 @@ public class CalibrateViewModel : AbstractDialogViewModel {
         public void Start() {
                 Control.StartCalibration();
         }
+
+        public void Stop() {
+                Control.Stop();
+        }
+
+        public void Cancel() {
+                CloseDialog();
+        }
+
+        public void Done() {
+                CloseDialog();
+        }
+
 }
